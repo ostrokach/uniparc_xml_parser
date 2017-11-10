@@ -11,3 +11,8 @@ Cargo.lock
 
 #
 uniparc
+
+# Python cache files
+.cache
+__pycache__
+
