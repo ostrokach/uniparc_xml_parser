@@ -92,41 +92,43 @@ struct Properties<T> {
 fn get_handlers() -> Outputs<io::BufWriter<File>> {
     Outputs {
         //
-        uniparc: io::BufWriter::new(File::create("uniparc/uniparc.tsv").unwrap()),
+        uniparc: io::BufWriter::new(File::create("uniparc.tsv").unwrap()),
         //
-        uniparc_xref: io::BufWriter::new(File::create("uniparc/uniparc_xref.tsv").unwrap()),
+        uniparc_xref: io::BufWriter::new(File::create("uniparc_xref.tsv").unwrap()),
         //
-        uniparc_xref2ncbi_gi: io::BufWriter::new(File::create("uniparc/_uniparc_xref2ncbi_gi.\
-                                                                        tsv")
-            .unwrap()),
-        uniparc_xref2ncbi_taxonomy_id:
-            io::BufWriter::new(File::create("uniparc/_uniparc_xref2ncbi_taxonomy_id.tsv").unwrap()),
-        uniparc_xref2protein_name:
-            io::BufWriter::new(File::create("uniparc/_uniparc_xref2protein_name.tsv").unwrap()),
-        uniparc_xref2gene_name: io::BufWriter::new(File::create("uniparc/_uniparc_xref2gene_name.\
-                                                                 tsv")
-            .unwrap()),
-        uniparc_xref2chain: io::BufWriter::new(File::create("uniparc/_uniparc_xref2chain.tsv")
-            .unwrap()),
-        uniparc_xref2uniprot_kb_accession:
-            io::BufWriter::new(File::create("uniparc/_uniparc_xref2uniprot_kb_accession.tsv")
-            .unwrap()),
-        uniparc_xref2proteome_id:
-            io::BufWriter::new(File::create("uniparc/_uniparc_xref2proteome_id.tsv").unwrap()),
-        uniparc_xref2component: io::BufWriter::new(File::create("uniparc/_uniparc_xref2component.\
-                                                                 tsv")
-            .unwrap()),
+        uniparc_xref2ncbi_gi: io::BufWriter::new(
+            File::create("_uniparc_xref2ncbi_gi.tsv").unwrap(),
+        ),
+        uniparc_xref2ncbi_taxonomy_id: io::BufWriter::new(
+            File::create("_uniparc_xref2ncbi_taxonomy_id.tsv").unwrap(),
+        ),
+        uniparc_xref2protein_name: io::BufWriter::new(
+            File::create("_uniparc_xref2protein_name.tsv").unwrap(),
+        ),
+        uniparc_xref2gene_name: io::BufWriter::new(
+            File::create("_uniparc_xref2gene_name.tsv").unwrap(),
+        ),
+        uniparc_xref2chain: io::BufWriter::new(File::create("_uniparc_xref2chain.tsv").unwrap()),
+        uniparc_xref2uniprot_kb_accession: io::BufWriter::new(
+            File::create("_uniparc_xref2uniprot_kb_accession.tsv").unwrap(),
+        ),
+        uniparc_xref2proteome_id: io::BufWriter::new(
+            File::create("_uniparc_xref2proteome_id.tsv").unwrap(),
+        ),
+        uniparc_xref2component: io::BufWriter::new(
+            File::create("_uniparc_xref2component.tsv").unwrap(),
+        ),
         //
-        ncbi_gi: io::BufWriter::new(File::create("uniparc/_ncbi_gi.tsv").unwrap()),
-        ncbi_taxonomy_id: io::BufWriter::new(File::create("uniparc/_ncbi_taxonomy_id.tsv")
-            .unwrap()),
-        protein_name: io::BufWriter::new(File::create("uniparc/_protein_name.tsv").unwrap()),
-        gene_name: io::BufWriter::new(File::create("uniparc/_gene_name.tsv").unwrap()),
-        chain: io::BufWriter::new(File::create("uniparc/_chain.tsv").unwrap()),
-        uniprot_kb_accession: io::BufWriter::new(File::create("uniparc/_uniprot_kb_accession.tsv")
-            .unwrap()),
-        proteome_id: io::BufWriter::new(File::create("uniparc/_proteome_id.tsv").unwrap()),
-        component: io::BufWriter::new(File::create("uniparc/_component.tsv").unwrap()),
+        ncbi_gi: io::BufWriter::new(File::create("_ncbi_gi.tsv").unwrap()),
+        ncbi_taxonomy_id: io::BufWriter::new(File::create("_ncbi_taxonomy_id.tsv").unwrap()),
+        protein_name: io::BufWriter::new(File::create("_protein_name.tsv").unwrap()),
+        gene_name: io::BufWriter::new(File::create("_gene_name.tsv").unwrap()),
+        chain: io::BufWriter::new(File::create("_chain.tsv").unwrap()),
+        uniprot_kb_accession: io::BufWriter::new(
+            File::create("_uniprot_kb_accession.tsv").unwrap(),
+        ),
+        proteome_id: io::BufWriter::new(File::create("_proteome_id.tsv").unwrap()),
+        component: io::BufWriter::new(File::create("_component.tsv").unwrap()),
     }
 }
 
@@ -166,10 +168,11 @@ fn get_uniparc_xrefs2properties() -> Properties<Vec<UniparcXRef2Property>> {
 }
 
 // Add new data
-fn add_uniparc_xref(uniparc_id: String,
-                    uniparc_xrefs: &mut Vec<UniparcXRef>,
-                    attributes: Vec<OwnedAttribute>)
-                    -> bool {
+fn add_uniparc_xref(
+    uniparc_id: String,
+    uniparc_xrefs: &mut Vec<UniparcXRef>,
+    attributes: Vec<OwnedAttribute>,
+) -> bool {
     let mut uniparc_xref = UniparcXRef {
         uniparc_id: uniparc_id,
         idx: (uniparc_xrefs.len() + 1) as i32,
@@ -216,11 +219,13 @@ fn add_uniparc_xref(uniparc_id: String,
     false
 }
 
-fn add_property(uniparc_id: String,
-                uniparc_xrefs: &Vec<UniparcXRef>,
-                properties: &mut Properties<HashMap<String, i32>>,
-                uniparc_xref2properties: &mut Properties<Vec<UniparcXRef2Property>>,
-                attributes: Vec<OwnedAttribute>) {
+fn add_property(
+    uniparc_id: String,
+    uniparc_xrefs: &Vec<UniparcXRef>,
+    properties: &mut Properties<HashMap<String, i32>>,
+    uniparc_xref2properties: &mut Properties<Vec<UniparcXRef2Property>>,
+    attributes: Vec<OwnedAttribute>,
+) {
     let (attr_type, mut attr_value) = (attributes[0].value.clone(), attributes[1].value.clone());
 
     let uniparc_xref_idx = uniparc_xrefs.len() as i32;
@@ -230,19 +235,35 @@ fn add_property(uniparc_id: String,
     }
 
     let (mut property, mut uniparc_xref2property) = match attr_type.as_ref() {
-        "NCBI_GI" => (&mut properties.ncbi_gi, &mut uniparc_xref2properties.ncbi_gi),
-        "NCBI_taxonomy_id" => {
-            (&mut properties.ncbi_taxonomy_id, &mut uniparc_xref2properties.ncbi_taxonomy_id)
-        }
-        "protein_name" => (&mut properties.protein_name, &mut uniparc_xref2properties.protein_name),
-        "gene_name" => (&mut properties.gene_name, &mut uniparc_xref2properties.gene_name),
+        "NCBI_GI" => (
+            &mut properties.ncbi_gi,
+            &mut uniparc_xref2properties.ncbi_gi,
+        ),
+        "NCBI_taxonomy_id" => (
+            &mut properties.ncbi_taxonomy_id,
+            &mut uniparc_xref2properties.ncbi_taxonomy_id,
+        ),
+        "protein_name" => (
+            &mut properties.protein_name,
+            &mut uniparc_xref2properties.protein_name,
+        ),
+        "gene_name" => (
+            &mut properties.gene_name,
+            &mut uniparc_xref2properties.gene_name,
+        ),
         "chain" => (&mut properties.chain, &mut uniparc_xref2properties.chain),
-        "UniProtKB_accession" => {
-            (&mut properties.uniprot_kb_accession,
-             &mut uniparc_xref2properties.uniprot_kb_accession)
-        }
-        "proteome_id" => (&mut properties.proteome_id, &mut uniparc_xref2properties.proteome_id),
-        "component" => (&mut properties.component, &mut uniparc_xref2properties.component),
+        "UniProtKB_accession" => (
+            &mut properties.uniprot_kb_accession,
+            &mut uniparc_xref2properties.uniprot_kb_accession,
+        ),
+        "proteome_id" => (
+            &mut properties.proteome_id,
+            &mut uniparc_xref2properties.proteome_id,
+        ),
+        "component" => (
+            &mut properties.component,
+            &mut uniparc_xref2properties.component,
+        ),
         _ => panic!("Unmatched value: '{}'.", attr_type),
     };
 
@@ -278,29 +299,35 @@ fn add_sequence(uniparc: &mut Uniparc, attributes: Vec<OwnedAttribute>) {
 }
 
 // Write output
-fn write_entry(handlers: &mut Outputs<io::BufWriter<File>>,
-               uniparc: &Uniparc,
-               uniparc_xrefs: &Vec<UniparcXRef>) {
+fn write_entry(
+    handlers: &mut Outputs<io::BufWriter<File>>,
+    uniparc: &Uniparc,
+    uniparc_xrefs: &Vec<UniparcXRef>,
+) {
     // uniparc
-    let _ = writeln!(handlers.uniparc,
-                     "{}\t{}\t{}\t{}",
-                     uniparc.id,
-                     uniparc.sequence,
-                     uniparc.sequence_length,
-                     uniparc.sequence_checksum);
+    let _ = writeln!(
+        handlers.uniparc,
+        "{}\t{}\t{}\t{}",
+        uniparc.id,
+        uniparc.sequence,
+        uniparc.sequence_length,
+        uniparc.sequence_checksum
+    );
     // uniparc_xref
     for uniparc_xref in uniparc_xrefs {
-        let _ = writeln!(handlers.uniparc_xref,
-                         "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
-                         uniparc_xref.uniparc_id,
-                         uniparc_xref.idx,
-                         uniparc_xref.db_type,
-                         uniparc_xref.db_id,
-                         uniparc_xref.version_i,
-                         uniparc_xref.active,
-                         uniparc_xref.version,
-                         uniparc_xref.created,
-                         uniparc_xref.last);
+        let _ = writeln!(
+            handlers.uniparc_xref,
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+            uniparc_xref.uniparc_id,
+            uniparc_xref.idx,
+            uniparc_xref.db_type,
+            uniparc_xref.db_id,
+            uniparc_xref.version_i,
+            uniparc_xref.active,
+            uniparc_xref.version,
+            uniparc_xref.created,
+            uniparc_xref.last
+        );
     }
 }
 
@@ -313,140 +340,176 @@ fn sorted(hash: &HashMap<String, i32>) -> Vec<(&i32, &String)> {
     list
 }
 
-fn write_properties(headers: &mut Outputs<io::BufWriter<File>>,
-                    properties: &Properties<HashMap<String, i32>>,
-                    uniparc_id: String) {
+fn write_properties(
+    headers: &mut Outputs<io::BufWriter<File>>,
+    properties: &Properties<HashMap<String, i32>>,
+    uniparc_id: String,
+) {
     for (idx, value) in sorted(&properties.ncbi_gi) {
-        let _ = writeln!(headers.ncbi_gi,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_id,
-                         "ncbi_gi",
-                         idx,
-                         value);
+        let _ = writeln!(
+            headers.ncbi_gi,
+            "{}\t{}\t{}\t{}",
+            uniparc_id,
+            "ncbi_gi",
+            idx,
+            value
+        );
     }
     for (idx, value) in sorted(&properties.ncbi_taxonomy_id) {
-        let _ = writeln!(headers.ncbi_taxonomy_id,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_id,
-                         "ncbi_taxonomy_id",
-                         idx,
-                         value);
+        let _ = writeln!(
+            headers.ncbi_taxonomy_id,
+            "{}\t{}\t{}\t{}",
+            uniparc_id,
+            "ncbi_taxonomy_id",
+            idx,
+            value
+        );
     }
     for (idx, value) in sorted(&properties.protein_name) {
-        let _ = writeln!(headers.protein_name,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_id,
-                         "protein_name",
-                         idx,
-                         value);
+        let _ = writeln!(
+            headers.protein_name,
+            "{}\t{}\t{}\t{}",
+            uniparc_id,
+            "protein_name",
+            idx,
+            value
+        );
     }
     for (idx, value) in sorted(&properties.gene_name) {
-        let _ = writeln!(headers.gene_name,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_id,
-                         "gene_name",
-                         idx,
-                         value);
+        let _ = writeln!(
+            headers.gene_name,
+            "{}\t{}\t{}\t{}",
+            uniparc_id,
+            "gene_name",
+            idx,
+            value
+        );
     }
     for (idx, value) in sorted(&properties.chain) {
-        let _ = writeln!(headers.chain,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_id,
-                         "chain",
-                         idx,
-                         value);
+        let _ = writeln!(
+            headers.chain,
+            "{}\t{}\t{}\t{}",
+            uniparc_id,
+            "chain",
+            idx,
+            value
+        );
     }
     for (idx, value) in sorted(&properties.uniprot_kb_accession) {
-        let _ = writeln!(headers.uniprot_kb_accession,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_id,
-                         "uniprot_kb_accession",
-                         idx,
-                         value);
+        let _ = writeln!(
+            headers.uniprot_kb_accession,
+            "{}\t{}\t{}\t{}",
+            uniparc_id,
+            "uniprot_kb_accession",
+            idx,
+            value
+        );
     }
     for (idx, value) in sorted(&properties.proteome_id) {
-        let _ = writeln!(headers.proteome_id,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_id,
-                         "proteome_id",
-                         idx,
-                         value);
+        let _ = writeln!(
+            headers.proteome_id,
+            "{}\t{}\t{}\t{}",
+            uniparc_id,
+            "proteome_id",
+            idx,
+            value
+        );
     }
     for (idx, value) in sorted(&properties.component) {
-        let _ = writeln!(headers.component,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_id,
-                         "component",
-                         idx,
-                         value);
+        let _ = writeln!(
+            headers.component,
+            "{}\t{}\t{}\t{}",
+            uniparc_id,
+            "component",
+            idx,
+            value
+        );
     }
 }
 
-fn write_uniparc_xref2properties(headers: &mut Outputs<io::BufWriter<File>>,
-                                 uniparc_xref2properties: &Properties<Vec<UniparcXRef2Property>>) {
+fn write_uniparc_xref2properties(
+    headers: &mut Outputs<io::BufWriter<File>>,
+    uniparc_xref2properties: &Properties<Vec<UniparcXRef2Property>>,
+) {
     for uniparc_xref2property in &uniparc_xref2properties.ncbi_gi {
-        let _ = writeln!(headers.uniparc_xref2ncbi_gi,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_xref2property.uniparc_id,
-                         "ncbi_gi",
-                         uniparc_xref2property.uniparc_xref_idx,
-                         uniparc_xref2property.property_idx);
+        let _ = writeln!(
+            headers.uniparc_xref2ncbi_gi,
+            "{}\t{}\t{}\t{}",
+            uniparc_xref2property.uniparc_id,
+            "ncbi_gi",
+            uniparc_xref2property.uniparc_xref_idx,
+            uniparc_xref2property.property_idx
+        );
     }
     for uniparc_xref2property in &uniparc_xref2properties.ncbi_taxonomy_id {
-        let _ = writeln!(headers.uniparc_xref2ncbi_taxonomy_id,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_xref2property.uniparc_id,
-                         "ncbi_taxonomy_id",
-                         uniparc_xref2property.uniparc_xref_idx,
-                         uniparc_xref2property.property_idx);
+        let _ = writeln!(
+            headers.uniparc_xref2ncbi_taxonomy_id,
+            "{}\t{}\t{}\t{}",
+            uniparc_xref2property.uniparc_id,
+            "ncbi_taxonomy_id",
+            uniparc_xref2property.uniparc_xref_idx,
+            uniparc_xref2property.property_idx
+        );
     }
     for uniparc_xref2property in &uniparc_xref2properties.protein_name {
-        let _ = writeln!(headers.uniparc_xref2protein_name,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_xref2property.uniparc_id,
-                         "protein_name",
-                         uniparc_xref2property.uniparc_xref_idx,
-                         uniparc_xref2property.property_idx);
+        let _ = writeln!(
+            headers.uniparc_xref2protein_name,
+            "{}\t{}\t{}\t{}",
+            uniparc_xref2property.uniparc_id,
+            "protein_name",
+            uniparc_xref2property.uniparc_xref_idx,
+            uniparc_xref2property.property_idx
+        );
     }
     for uniparc_xref2property in &uniparc_xref2properties.gene_name {
-        let _ = writeln!(headers.uniparc_xref2gene_name,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_xref2property.uniparc_id,
-                         "gene_name",
-                         uniparc_xref2property.uniparc_xref_idx,
-                         uniparc_xref2property.property_idx);
+        let _ = writeln!(
+            headers.uniparc_xref2gene_name,
+            "{}\t{}\t{}\t{}",
+            uniparc_xref2property.uniparc_id,
+            "gene_name",
+            uniparc_xref2property.uniparc_xref_idx,
+            uniparc_xref2property.property_idx
+        );
     }
     for uniparc_xref2property in &uniparc_xref2properties.chain {
-        let _ = writeln!(headers.uniparc_xref2chain,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_xref2property.uniparc_id,
-                         "chain",
-                         uniparc_xref2property.uniparc_xref_idx,
-                         uniparc_xref2property.property_idx);
+        let _ = writeln!(
+            headers.uniparc_xref2chain,
+            "{}\t{}\t{}\t{}",
+            uniparc_xref2property.uniparc_id,
+            "chain",
+            uniparc_xref2property.uniparc_xref_idx,
+            uniparc_xref2property.property_idx
+        );
     }
     for uniparc_xref2property in &uniparc_xref2properties.uniprot_kb_accession {
-        let _ = writeln!(headers.uniparc_xref2uniprot_kb_accession,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_xref2property.uniparc_id,
-                         "uniprot_kb_accession",
-                         uniparc_xref2property.uniparc_xref_idx,
-                         uniparc_xref2property.property_idx);
+        let _ = writeln!(
+            headers.uniparc_xref2uniprot_kb_accession,
+            "{}\t{}\t{}\t{}",
+            uniparc_xref2property.uniparc_id,
+            "uniprot_kb_accession",
+            uniparc_xref2property.uniparc_xref_idx,
+            uniparc_xref2property.property_idx
+        );
     }
     for uniparc_xref2property in &uniparc_xref2properties.proteome_id {
-        let _ = writeln!(headers.uniparc_xref2proteome_id,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_xref2property.uniparc_id,
-                         "proteome_id",
-                         uniparc_xref2property.uniparc_xref_idx,
-                         uniparc_xref2property.property_idx);
+        let _ = writeln!(
+            headers.uniparc_xref2proteome_id,
+            "{}\t{}\t{}\t{}",
+            uniparc_xref2property.uniparc_id,
+            "proteome_id",
+            uniparc_xref2property.uniparc_xref_idx,
+            uniparc_xref2property.property_idx
+        );
     }
     for uniparc_xref2property in &uniparc_xref2properties.component {
-        let _ = writeln!(headers.uniparc_xref2component,
-                         "{}\t{}\t{}\t{}",
-                         uniparc_xref2property.uniparc_id,
-                         "component",
-                         uniparc_xref2property.uniparc_xref_idx,
-                         uniparc_xref2property.property_idx);
+        let _ = writeln!(
+            headers.uniparc_xref2component,
+            "{}\t{}\t{}\t{}",
+            uniparc_xref2property.uniparc_id,
+            "component",
+            uniparc_xref2property.uniparc_xref_idx,
+            uniparc_xref2property.property_idx
+        );
     }
 }
 
@@ -466,7 +529,9 @@ fn run() -> Result<usize, Error> {
 
     for e in parser {
         match e {
-            Ok(XmlEvent::StartElement { name, attributes, .. }) => {
+            Ok(XmlEvent::StartElement {
+                name, attributes, ..
+            }) => {
                 match name.local_name.as_ref() {
                     "entry" => {
                         uniparc = get_uniparc();
@@ -478,15 +543,15 @@ fn run() -> Result<usize, Error> {
                         keep_uniparc_xref =
                             add_uniparc_xref(uniparc.id.clone(), &mut uniparc_xrefs, attributes);
                     }
-                    "property" => {
-                        if keep_uniparc_xref {
-                            add_property(uniparc.id.clone(),
-                                         &uniparc_xrefs,
-                                         &mut properties,
-                                         &mut uniparc_xref2properties,
-                                         attributes);
-                        }
-                    }
+                    "property" => if keep_uniparc_xref {
+                        add_property(
+                            uniparc.id.clone(),
+                            &uniparc_xrefs,
+                            &mut properties,
+                            &mut uniparc_xref2properties,
+                            attributes,
+                        );
+                    },
                     "sequence" => {
                         add_sequence(&mut uniparc, attributes);
                     }
@@ -494,9 +559,11 @@ fn run() -> Result<usize, Error> {
                         // This is where we get the uniparc id from the character field.
                     }
                     _ => {
-                        println!("Skipping StartElement '{}' with attributes {:?}.",
-                                 name.local_name,
-                                 attributes);
+                        println!(
+                            "Skipping StartElement '{}' with attributes {:?}.",
+                            name.local_name,
+                            attributes
+                        );
                     }
                 }
                 current_element.push(name.local_name);
@@ -505,9 +572,11 @@ fn run() -> Result<usize, Error> {
             Ok(XmlEvent::EndElement { name }) => {
                 match name.local_name.as_ref() {
                     "entry" => {
-                        println!("Saving entry with id: '{}' and sequence: '{}'",
-                                 uniparc.id,
-                                 uniparc.sequence);
+                        println!(
+                            "Saving entry with id: '{}' and sequence: '{}'",
+                            uniparc.id,
+                            uniparc.sequence
+                        );
                         write_entry(&mut handlers, &uniparc, &uniparc_xrefs);
                         write_properties(&mut handlers, &properties, uniparc.id.clone());
                         write_uniparc_xref2properties(&mut handlers, &uniparc_xref2properties);
