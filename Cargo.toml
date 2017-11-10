@@ -1,11 +1,11 @@
 [package]
-name = "biodata-parsers"
-version = "0.1.0"
+name = "biorustlings"
+version = "0.0.2"
 authors = ["ostrokach <ostrokach@gmail.com>"]
 description = "Scripts for parsing UniParc XML files downloaded from the Uniprot website into CSV files."
-homepage = "https://ostrokach.github.io/uniparc_xml_parser"
-documentation = "https://ostrokach.github.io/uniparc_xml_parser"
-repository = "https://github.com/ostrokach/uniparc_xml_parser"
+homepage = "https://kimlab.gitlab.io/biorustlings"
+documentation = "https://kimlab.gitlab.io/biorustlings"
+repository = "https://gitlab.com/kimlab/biorustlings"
 readme = "README.md"
 license = "MIT"
 exclude = [
@@ -13,5 +13,4 @@ exclude = [
 ]
 
 [dependencies]
-xml-rs = "0.3"
-
+xml-rs = "0.7"
