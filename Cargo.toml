@@ -1,11 +1,11 @@
 [package]
-name = "biorustlings"
-version = "0.0.2"
+name = "uniparc_xml_parser"
+version = "0.1.1"
 authors = ["ostrokach <ostrokach@gmail.com>"]
 description = "Scripts for parsing UniParc XML files downloaded from the Uniprot website into CSV files."
-homepage = "https://kimlab.gitlab.io/biorustlings"
-documentation = "https://kimlab.gitlab.io/biorustlings"
-repository = "https://gitlab.com/kimlab/biorustlings"
+homepage = "https://kimlab.gitlab.io/uniparc_xml_parser"
+documentation = "https://kimlab.gitlab.io/uniparc_xml_parser"
+repository = "https://gitlab.com/kimlab/uniparc_xml_parser"
 readme = "README.md"
 license = "MIT"
 exclude = [
