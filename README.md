@@ -17,3 +17,9 @@ sys     0m0.132s
 
 The actual `uniparc_all.xml.gz` file is about 5 billion rows.
 
+## FAQ
+
+#### Why not split `uniparc_all.xml.gz` into multiple small files and process them in parallel
+
+- Splitting the file requires reading the entire file. If we're reading the entire file anyway, why not parse it as we read it?
+- Having a single process which parses `uniparc_all.xml.gz` makes it easier to create an incremental unique index column (e.g. `UniparcXRef.idx`, `Property.idx`, etc.).

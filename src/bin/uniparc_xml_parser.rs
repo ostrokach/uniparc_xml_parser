@@ -1,6 +1,5 @@
-// #![allow(unused_variables, unused_mut, dead_code, unused_mut)]
+extern crate biorustlings;
 extern crate xml;
-// extern crate flate2;
 
 use std::io;
 use std::io::BufReader;
@@ -14,8 +13,6 @@ use std::collections::HashMap;
 
 use xml::reader::{EventReader, XmlEvent};
 use xml::attribute::OwnedAttribute;
-
-// use flate2::write::GzEncoder;
 
 type Error = Box<error::Error + Send + Sync>;
 
@@ -53,7 +50,7 @@ struct Uniparc {
 
 struct UniparcXRef {
     uniparc_id: String,
-    idx: i32,
+    idx: i64,
     db_type: String,
     db_id: String,
     version_i: String,
@@ -66,15 +63,15 @@ struct UniparcXRef {
 #[derive(Hash, Eq, PartialEq, Debug)]
 struct Property {
     uniparc_id: String,
-    idx: i32,
+    idx: i64,
     xtype: String,
     value: String,
 }
 
 struct UniparcXRef2Property {
     uniparc_id: String,
-    uniparc_xref_idx: i32,
-    property_idx: i32,
+    uniparc_xref_idx: i64,
+    property_idx: i64,
 }
 
 struct Properties<T> {
@@ -87,6 +84,14 @@ struct Properties<T> {
     proteome_id: T,
     component: T,
 }
+
+struct SignatureSequenceMatch {
+    uniparc_id: String,
+    interpro_id: String,
+    domain_start: i32,
+    domain_end: i32,
+}
+
 
 // Get empties
 fn get_handlers() -> Outputs<io::BufWriter<File>> {
@@ -129,6 +134,14 @@ fn get_handlers() -> Outputs<io::BufWriter<File>> {
         ),
         proteome_id: io::BufWriter::new(File::create("_proteome_id.tsv").unwrap()),
         component: io::BufWriter::new(File::create("_component.tsv").unwrap()),
+        //
+ 
+
+
+
+
+
+
     }
 }
 
@@ -141,7 +154,7 @@ fn get_uniparc() -> Uniparc {
     }
 }
 
-fn get_properties() -> Properties<HashMap<String, i32>> {
+fn get_properties() -> Properties<HashMap<String, i64>> {
     Properties {
         ncbi_gi: HashMap::new(),
         ncbi_taxonomy_id: HashMap::new(),
@@ -175,7 +188,7 @@ fn add_uniparc_xref(
 ) -> bool {
     let mut uniparc_xref = UniparcXRef {
         uniparc_id: uniparc_id,
-        idx: (uniparc_xrefs.len() + 1) as i32,
+        idx: (uniparc_xrefs.len() + 1) as i64,
         db_type: String::new(),
         db_id: String::new(),
         version_i: String::new(),
@@ -222,13 +235,13 @@ fn add_uniparc_xref(
 fn add_property(
     uniparc_id: String,
     uniparc_xrefs: &Vec<UniparcXRef>,
-    properties: &mut Properties<HashMap<String, i32>>,
+    properties: &mut Properties<HashMap<String, i64>>,
     uniparc_xref2properties: &mut Properties<Vec<UniparcXRef2Property>>,
     attributes: Vec<OwnedAttribute>,
 ) {
     let (attr_type, mut attr_value) = (attributes[0].value.clone(), attributes[1].value.clone());
 
-    let uniparc_xref_idx = uniparc_xrefs.len() as i32;
+    let uniparc_xref_idx = uniparc_xrefs.len() as i64;
     if attr_type == "chain" {
         assert!(uniparc_xrefs.last().unwrap().db_type == "PDB");
         attr_value = uniparc_xrefs.last().unwrap().db_id.clone() + &attr_value;
@@ -267,9 +280,9 @@ fn add_property(
         _ => panic!("Unmatched value: '{}'.", attr_type),
     };
 
-    let property_idx: i32;
+    let property_idx: i64;
     if !property.contains_key(&attr_value) {
-        property_idx = (property.len() + 1) as i32;
+        property_idx = (property.len() + 1) as i64;
         property.insert(attr_value, property_idx);
     } else {
         property_idx = *property.get(&attr_value).unwrap();
@@ -331,7 +344,7 @@ fn write_entry(
     }
 }
 
-fn sorted(hash: &HashMap<String, i32>) -> Vec<(&i32, &String)> {
+fn sorted(hash: &HashMap<String, i64>) -> Vec<(&i64, &String)> {
     let mut list = Vec::new();
     for (key, value) in hash {
         list.push((value, key));
@@ -342,7 +355,7 @@ fn sorted(hash: &HashMap<String, i32>) -> Vec<(&i32, &String)> {
 
 fn write_properties(
     headers: &mut Outputs<io::BufWriter<File>>,
-    properties: &Properties<HashMap<String, i32>>,
+    properties: &Properties<HashMap<String, i64>>,
     uniparc_id: String,
 ) {
     for (idx, value) in sorted(&properties.ncbi_gi) {
@@ -513,9 +526,8 @@ fn write_uniparc_xref2properties(
     }
 }
 
-/// hello
-fn run() -> Result<usize, Error> {
-    let parser = EventReader::new(BufReader::new(io::stdin()));
+/// Main loop
+fn run(parser: EventReader) -> Result<usize, Error> {
     let mut handlers = get_handlers();
 
     let mut uniparc = get_uniparc();
@@ -558,6 +570,7 @@ fn run() -> Result<usize, Error> {
                     "accession" => {
                         // This is where we get the uniparc id from the character field.
                     }
+                    "signatureSequenceMatch" => add_domains(&mut uniparc, attributes),
                     _ => {
                         println!(
                             "Skipping StartElement '{}' with attributes {:?}.",
@@ -626,7 +639,8 @@ fn run() -> Result<usize, Error> {
 }
 
 fn main() {
-    match run() {
+    let parser = EventReader::new(BufReader::new(io::stdin()));
+    match run(parser) {
         Ok(count) => println!("{}", count),
         Err(err) => {
             let _ = writeln!(&mut io::stderr(), "{}", err);
