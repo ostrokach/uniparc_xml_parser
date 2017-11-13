@@ -1,9 +1,7 @@
-extern crate biorustlings;
 extern crate xml;
 
 use std::io;
-use std::io::BufReader;
-use std::str;
+use std::io::{BufReader, Stdin};
 use std::error;
 use std::fs::File;
 use std::io::Write;
@@ -85,12 +83,12 @@ struct Properties<T> {
     component: T,
 }
 
-struct SignatureSequenceMatch {
-    uniparc_id: String,
-    interpro_id: String,
-    domain_start: i32,
-    domain_end: i32,
-}
+// struct SignatureSequenceMatch {
+//     uniparc_id: String,
+//     interpro_id: String,
+//     domain_start: i32,
+//     domain_end: i32,
+// }
 
 
 // Get empties
@@ -247,7 +245,7 @@ fn add_property(
         attr_value = uniparc_xrefs.last().unwrap().db_id.clone() + &attr_value;
     }
 
-    let (mut property, mut uniparc_xref2property) = match attr_type.as_ref() {
+    let (property, uniparc_xref2property) = match attr_type.as_ref() {
         "NCBI_GI" => (
             &mut properties.ncbi_gi,
             &mut uniparc_xref2properties.ncbi_gi,
@@ -527,7 +525,7 @@ fn write_uniparc_xref2properties(
 }
 
 /// Main loop
-fn run(parser: EventReader) -> Result<usize, Error> {
+fn run(parser: EventReader<BufReader<Stdin>>) -> Result<usize, Error> {
     let mut handlers = get_handlers();
 
     let mut uniparc = get_uniparc();
@@ -570,7 +568,7 @@ fn run(parser: EventReader) -> Result<usize, Error> {
                     "accession" => {
                         // This is where we get the uniparc id from the character field.
                     }
-                    "signatureSequenceMatch" => add_domains(&mut uniparc, attributes),
+                    // "signatureSequenceMatch" => add_domains(&mut uniparc, attributes),
                     _ => {
                         println!(
                             "Skipping StartElement '{}' with attributes {:?}.",
