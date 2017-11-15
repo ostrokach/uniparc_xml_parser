@@ -17,6 +17,12 @@ sys     0m0.132s
 
 The actual `uniparc_all.xml.gz` file is about 5 billion rows.
 
+
+## To do
+
+Keep everything in bytes all the way until output.
+
+
 ## FAQ
 
 #### Why not split `uniparc_all.xml.gz` into multiple small files and process them in parallel

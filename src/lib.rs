@@ -2,7 +2,7 @@
 //!
 //!
 extern crate flate2;
-extern crate xml;
+extern crate quick_xml;
 
 mod model;
 mod properties;
@@ -12,9 +12,11 @@ use std::io::{BufReader, Stdin};
 use std::error::Error;
 use std::path::PathBuf;
 use std::collections::HashMap;
+use std::str;
 
-use xml::reader::{EventReader, XmlEvent};
-use xml::attribute::OwnedAttribute;
+use quick_xml::reader::Reader;
+use quick_xml::events::Event;
+use quick_xml::events::attributes::Attribute;
 
 use model::{Uniparc, UniparcDomain, UniparcXRef, UniparcXRef2Property};
 use properties::Properties;
@@ -26,7 +28,7 @@ use writer::{initialize_outputs, write_uniparc, write_uniparc_domains, write_uni
 fn add_uniparc_xref(
     uniparc_id: String,
     uniparc_xrefs: &mut Vec<UniparcXRef>,
-    attributes: Vec<OwnedAttribute>,
+    attributes: Vec<Attribute>,
 ) -> bool {
     let mut uniparc_xref = UniparcXRef {
         uniparc_id: uniparc_id,
@@ -40,27 +42,27 @@ fn add_uniparc_xref(
         last: String::new(),
     };
     for attribute in attributes {
-        match attribute.name.local_name.as_ref() {
-            "type" => {
-                uniparc_xref.db_type = attribute.value;
+        match attribute.key {
+            b"type" => {
+                uniparc_xref.db_type = str::from_utf8(attribute.value).unwrap().to_string();
             }
-            "id" => {
-                uniparc_xref.db_id = attribute.value;
+            b"id" => {
+                uniparc_xref.db_id = str::from_utf8(attribute.value).unwrap().to_string();
             }
-            "version_i" => {
-                uniparc_xref.version_i = attribute.value;
+            b"version_i" => {
+                uniparc_xref.version_i = str::from_utf8(attribute.value).unwrap().to_string();
             }
-            "active" => {
-                uniparc_xref.active = attribute.value;
+            b"active" => {
+                uniparc_xref.active = str::from_utf8(attribute.value).unwrap().to_string();
             }
-            "version" => {
-                uniparc_xref.version = attribute.value;
+            b"version" => {
+                uniparc_xref.version = str::from_utf8(attribute.value).unwrap().to_string();
             }
-            "created" => {
-                uniparc_xref.created = attribute.value;
+            b"created" => {
+                uniparc_xref.created = str::from_utf8(attribute.value).unwrap().to_string();
             }
-            "last" => {
-                uniparc_xref.last = attribute.value;
+            b"last" => {
+                uniparc_xref.last = str::from_utf8(attribute.value).unwrap().to_string();
             }
             _ => {
                 println!("Skipping attribute '{:?}' for dbReference.", attribute);
@@ -79,9 +81,10 @@ fn add_property(
     uniparc_xrefs: &Vec<UniparcXRef>,
     properties: &mut Properties<HashMap<String, u64>>,
     uniparc_xref2properties: &mut Properties<Vec<UniparcXRef2Property>>,
-    attributes: Vec<OwnedAttribute>,
+    attributes: Vec<Attribute>,
 ) {
-    let (attr_type, mut attr_value) = (attributes[0].value.clone(), attributes[1].value.clone());
+    let attr_type = str::from_utf8(attributes[0].value).unwrap();
+    let mut attr_value = str::from_utf8(attributes[1].value).unwrap().to_string();
 
     let uniparc_xref_idx = uniparc_xrefs.len() as u64;
     if attr_type == "chain" {
@@ -89,7 +92,7 @@ fn add_property(
         attr_value = uniparc_xrefs.last().unwrap().db_id.clone() + &attr_value;
     }
 
-    let (property, uniparc_xref2property) = match attr_type.as_ref() {
+    let (property, uniparc_xref2property) = match attr_type {
         "NCBI_GI" => (
             &mut properties.ncbi_gi,
             &mut uniparc_xref2properties.ncbi_gi,
@@ -119,7 +122,7 @@ fn add_property(
             &mut properties.component,
             &mut uniparc_xref2properties.component,
         ),
-        _ => panic!("Unmatched value: '{}'.", attr_type),
+        _ => panic!("Unmatched value: '{:?}'.", attr_type),
     };
 
     let property_idx: u64;
@@ -141,19 +144,19 @@ fn add_property(
 fn add_signature_sequence_match(
     uniparc_id: String,
     uniparc_domains: &mut Vec<UniparcDomain>,
-    attributes: Vec<OwnedAttribute>,
+    attributes: Vec<Attribute>,
 ) {
     let mut database = String::new();
     let mut database_id = String::new();
     for attribute in attributes {
-        match attribute.name.local_name.as_ref() {
-            "database" => {
-                database = attribute.value;
+        match attribute.key {
+            b"database" => {
+                database = str::from_utf8(attribute.value).unwrap().to_string();
             }
-            "id" => {
-                database_id = attribute.value;
+            b"id" => {
+                database_id = str::from_utf8(attribute.value).unwrap().to_string();
             }
-            _ => panic!("Unmatched value: '{}'.", attribute.name),
+            _ => panic!("Unmatched value: '{:?}'.", attribute.key),
         }
     }
     let uniparc_domain = UniparcDomain {
@@ -169,21 +172,18 @@ fn add_signature_sequence_match(
 }
 
 
-fn add_interpro_annotation(
-    uniparc_domains: &mut Vec<UniparcDomain>,
-    attributes: Vec<OwnedAttribute>,
-) {
+fn add_interpro_annotation(uniparc_domains: &mut Vec<UniparcDomain>, attributes: Vec<Attribute>) {
     let mut interpro_name = String::new();
     let mut interpro_id = String::new();
     for attribute in attributes {
-        match attribute.name.local_name.as_ref() {
-            "name" => {
-                interpro_name = attribute.value;
+        match attribute.key {
+            b"name" => {
+                interpro_name = str::from_utf8(attribute.value).unwrap().to_string();
             }
-            "id" => {
-                interpro_id = attribute.value;
+            b"id" => {
+                interpro_id = str::from_utf8(attribute.value).unwrap().to_string();
             }
-            _ => panic!("Unmatched value: '{}'.", attribute.name),
+            _ => panic!("Unmatched value: '{:?}'.", attribute.key),
         }
     }
     let mut uniparc_domain = uniparc_domains.pop().unwrap();
@@ -196,17 +196,24 @@ fn add_interpro_annotation(
     uniparc_domains.push(uniparc_domain);
 }
 
-fn add_domain_definitions(
-    uniparc_domains: &mut Vec<UniparcDomain>,
-    attributes: Vec<OwnedAttribute>,
-) {
+fn add_domain_definitions(uniparc_domains: &mut Vec<UniparcDomain>, attributes: Vec<Attribute>) {
     let mut domain_start: u32 = 0;
     let mut domain_end: u32 = 0;
     for attribute in attributes {
-        match attribute.name.local_name.as_ref() {
-            "start" => domain_start = attribute.value.parse::<u32>().unwrap(),
-            "end" => domain_end = attribute.value.parse::<u32>().unwrap(),
-            _ => panic!("Unmatched value: '{}'.", attribute.name),
+        match attribute.key {
+            b"start" => {
+                domain_start = str::from_utf8(attribute.value)
+                    .unwrap()
+                    .parse::<u32>()
+                    .unwrap()
+            }
+            b"end" => {
+                domain_end = str::from_utf8(attribute.value)
+                    .unwrap()
+                    .parse::<u32>()
+                    .unwrap()
+            }
+            _ => panic!("Unmatched value: '{:?}'.", attribute.key),
         }
     }
     let mut uniparc_domain = uniparc_domains.pop().unwrap();
@@ -226,14 +233,17 @@ fn add_domain_definitions(
 }
 
 
-fn add_sequence(uniparc: &mut Uniparc, attributes: Vec<OwnedAttribute>) {
+fn add_sequence(uniparc: &mut Uniparc, attributes: Vec<Attribute>) {
     for attribute in attributes {
-        match attribute.name.local_name.as_ref() {
-            "length" => {
-                uniparc.sequence_length = attribute.value.parse::<u32>().unwrap();
+        match attribute.key {
+            b"length" => {
+                uniparc.sequence_length = str::from_utf8(attribute.value)
+                    .unwrap()
+                    .parse::<u32>()
+                    .unwrap();
             }
-            "checksum" => {
-                uniparc.sequence_checksum = attribute.value;
+            b"checksum" => {
+                uniparc.sequence_checksum = str::from_utf8(attribute.value).unwrap().to_string();
             }
             _ => {
                 println!("Skipping attribute '{:?}' for sequence.", attribute);
@@ -243,9 +253,17 @@ fn add_sequence(uniparc: &mut Uniparc, attributes: Vec<OwnedAttribute>) {
 }
 
 
+fn attribute_to_string(a: Attribute) -> (String, String) {
+    let key = str::from_utf8(a.key).unwrap().to_string();
+    let value = str::from_utf8(a.value).unwrap().to_string();
+    (key, value)
+}
+
+
 /// Main loop
 pub fn run(input_stream: Stdin, basedir: PathBuf) -> Result<usize, Box<Error>> {
-    let parser = EventReader::new(BufReader::new(input_stream));
+    let mut reader = Reader::from_reader(BufReader::new(input_stream));
+    reader.trim_text(true);
 
     let mut handlers = initialize_outputs(basedir);
 
@@ -265,14 +283,13 @@ pub fn run(input_stream: Stdin, basedir: PathBuf) -> Result<usize, Box<Error>> {
     let mut depth = 0;
     // The number of UniParc sequences that have been processed.
     let mut count = 0;
+    let mut buf = Vec::new();
 
-    for e in parser {
-        match e {
-            Ok(XmlEvent::StartElement {
-                name, attributes, ..
-            }) => {
-                match name.local_name.as_ref() {
-                    "entry" => {
+    loop {
+        match reader.read_event(&mut buf) {
+            Ok(Event::Start(ref e)) => {
+                match e.name() {
+                    b"entry" => {
                         uniparc = Default::default();
                         uniparc_xrefs = Vec::new();
                         uniparc_domains = Vec::new();
@@ -280,42 +297,73 @@ pub fn run(input_stream: Stdin, basedir: PathBuf) -> Result<usize, Box<Error>> {
                         uniparc_xref2properties = Default::default();
                         count += 1;
                     }
-                    "dbReference" => {
-                        keep_uniparc_xref =
-                            add_uniparc_xref(uniparc.id.clone(), &mut uniparc_xrefs, attributes);
-                    }
-                    "property" => if keep_uniparc_xref {
-                        add_property(
+                    b"dbReference" => {
+                        keep_uniparc_xref = add_uniparc_xref(
                             uniparc.id.clone(),
-                            &uniparc_xrefs,
-                            &mut properties,
-                            &mut uniparc_xref2properties,
-                            attributes,
+                            &mut uniparc_xrefs,
+                            e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
                         );
-                    },
-                    "signatureSequenceMatch" => add_signature_sequence_match(
+                    }
+                    b"signatureSequenceMatch" => add_signature_sequence_match(
                         uniparc.id.clone(),
                         &mut uniparc_domains,
-                        attributes,
+                        e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
                     ),
-                    "ipr" => add_interpro_annotation(&mut uniparc_domains, attributes),
-                    "lcn" => add_domain_definitions(&mut uniparc_domains, attributes),
-                    "sequence" => add_sequence(&mut uniparc, attributes),
-                    "accession" => {
+                    b"sequence" => add_sequence(
+                        &mut uniparc,
+                        e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
+                    ),
+                    b"accession" => {
                         // This is where we get the uniparc id from the character field.
                     }
                     _ => println!(
                         "Skipping StartElement '{}' with attributes {:?}.",
-                        name.local_name,
-                        attributes
+                        str::from_utf8(e.name()).unwrap(),
+                        e.attributes()
+                            .map(|a| attribute_to_string(a.unwrap()))
+                            .collect::<Vec<_>>()
                     ),
                 }
-                current_element.push(name.local_name);
+                // let name = str::from_utf8(e.name()).unwrap().to_string();
+                current_element.push(e.name().to_ascii_lowercase());
                 depth += 1;
             }
-            Ok(XmlEvent::EndElement { name }) => {
-                match name.local_name.as_ref() {
-                    "entry" => {
+            Ok(Event::Empty(ref e)) => match e.name() {
+                b"dbReference" => {
+                    add_uniparc_xref(
+                        uniparc.id.clone(),
+                        &mut uniparc_xrefs,
+                        e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
+                    );
+                }
+                b"property" => if keep_uniparc_xref {
+                    add_property(
+                        uniparc.id.clone(),
+                        &uniparc_xrefs,
+                        &mut properties,
+                        &mut uniparc_xref2properties,
+                        e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
+                    );
+                },
+                b"ipr" => add_interpro_annotation(
+                    &mut uniparc_domains,
+                    e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
+                ),
+                b"lcn" => add_domain_definitions(
+                    &mut uniparc_domains,
+                    e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
+                ),
+                _ => println!(
+                    "Skipping Empty element '{:?}' with attributes {:?}.",
+                    str::from_utf8(e.name()).unwrap(),
+                    e.attributes()
+                        .map(|a| attribute_to_string(a.unwrap()))
+                        .collect::<Vec<_>>()
+                ),
+            },
+            Ok(Event::End(ref e)) => {
+                match e.name() {
+                    b"entry" => {
                         write_uniparc(&mut handlers, &uniparc);
                         write_uniparc_xrefs(&mut handlers, &uniparc_xrefs);
                         write_uniparc_xref2properties(&mut handlers, &uniparc_xref2properties);
@@ -327,51 +375,28 @@ pub fn run(input_stream: Stdin, basedir: PathBuf) -> Result<usize, Box<Error>> {
                     }
                     _ => {}
                 }
-                assert!(current_element.pop().unwrap().as_ref() == name.local_name);
+                // let name = str::from_utf8(e.name()).unwrap().to_string();
+                assert!(current_element.pop().unwrap() == e.name().to_ascii_lowercase());
                 depth -= 1;
             }
-            Ok(XmlEvent::CData(cdata)) => {
-                println!("Skipping CData '{}'.", cdata);
+            Ok(Event::Text(text)) => {
+                uniparc.sequence = text.unescape_and_decode(&reader).unwrap();
             }
-            Ok(XmlEvent::Comment(comment)) => {
-                println!("Skipping Comment: '{}'", comment);
-            }
-            Ok(XmlEvent::Characters(characters)) => {
-                match current_element.last().unwrap().as_ref() {
-                    "accession" => {
-                        uniparc.id = String::from(characters.trim());
-                    }
-                    "sequence" => {
-                        uniparc.sequence = characters.lines().collect();
-                    }
-                    _ => {
-                        println!("Skipping Characters: '{}'", characters);
-                    }
-                }
-            }
-            Ok(XmlEvent::Whitespace(whitespace)) => {
-                let whitespace = String::from(whitespace.trim());
-                if !whitespace.is_empty() {
-                    println!("Skipping Whitespace: '{}'", whitespace);
-                }
-            }
-            Ok(XmlEvent::EndDocument) => println!("Done processing document!"),
-            Err(e) => {
-                println!("Error: {}", e);
-                break;
-            }
-            _ => {
-                println!("Error: did not match e: '{:?}'.", e);
-            }
+            Ok(Event::CData(e)) => println!("Skipping CData '{:?}'.", e),
+            Ok(Event::Decl(e)) => println!("Skipping Decl '{:?}'.", e),
+            Ok(Event::PI(e)) => println!("Skipping PI '{:?}'.", e),
+            Ok(Event::Comment(comment)) => println!("Skipping Comment: '{:?}'", comment),
+            Ok(Event::DocType(e)) => println!("Skipping DocType: '{:?}'", e),
+            Ok(Event::Eof) => break,
+            Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
         }
+        buf.clear();
     }
+    // buf.clear();
     println!("Depth: {}", depth);
     assert!(depth == 0);
     Ok(depth)
 }
-
-
-
 
 
 #[cfg(test)]
