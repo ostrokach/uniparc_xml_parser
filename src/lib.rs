@@ -4,13 +4,13 @@
 extern crate flate2;
 extern crate quick_xml;
 
+pub mod writer;
+
 mod model;
 mod properties;
-mod writer;
 
-use std::io::{BufReader, Stdin};
+use std::io::{BufReader, Stdin, Write};
 use std::error::Error;
-use std::path::PathBuf;
 use std::collections::HashMap;
 use std::str;
 
@@ -20,8 +20,8 @@ use quick_xml::events::attributes::Attribute;
 
 use model::{Uniparc, UniparcDomain, UniparcXRef, UniparcXRef2Property};
 use properties::Properties;
-use writer::{initialize_outputs, write_uniparc, write_uniparc_domains, write_uniparc_properties,
-             write_uniparc_xrefs, write_uniparc_xref2properties};
+use writer::{write_uniparc, write_uniparc_domains, write_uniparc_properties, write_uniparc_xrefs,
+             OutputBuffers, write_uniparc_xref2properties};
 
 
 /// Add new data
@@ -267,11 +267,12 @@ enum TextField {
 
 
 /// Main loop
-pub fn run(input_stream: Stdin, basedir: PathBuf) -> Result<usize, Box<Error>> {
+pub fn run<T: Write>(
+    input_stream: Stdin,
+    mut handlers: OutputBuffers<T>,
+) -> Result<usize, Box<Error>> {
     let mut reader = Reader::from_reader(BufReader::new(input_stream));
     reader.trim_text(true);
-
-    let mut handlers = initialize_outputs(basedir);
 
     // Variables created for each UniParc ID
     let mut uniparc: Uniparc = Default::default();

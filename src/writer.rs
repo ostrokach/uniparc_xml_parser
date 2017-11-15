@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::Write;
+use std::io::{BufWriter, Write};
 use std::path::PathBuf;
 use std::collections::HashMap;
 
@@ -38,7 +38,37 @@ pub struct OutputBuffers<T> {
 }
 
 /// Initialize all output buffers.
-pub fn initialize_outputs(basedir: PathBuf) -> OutputBuffers<GzEncoder<File>> {
+pub fn initialize_outputs(basedir: PathBuf) -> OutputBuffers<BufWriter<File>> {
+    let create_outfile = |filename: &str| {
+        let file = File::create(basedir.join(filename)).unwrap();
+        BufWriter::new(file)
+    };
+
+    OutputBuffers {
+        uniparc: create_outfile("uniparc.tsv"),
+        uniparc_xref: create_outfile("uniparc_xref.tsv"),
+        uniparc_xref2ncbi_gi: create_outfile("_uniparc_xref2ncbi_gi.tsv"),
+        uniparc_xref2ncbi_taxonomy_id: create_outfile("_uniparc_xref2ncbi_taxonomy_id.tsv"),
+        uniparc_xref2protein_name: create_outfile("_uniparc_xref2protein_name.tsv"),
+        uniparc_xref2gene_name: create_outfile("_uniparc_xref2gene_name.tsv"),
+        uniparc_xref2chain: create_outfile("_uniparc_xref2chain.tsv"),
+        uniparc_xref2uniprot_kb_accession: create_outfile("_uniparc_xref2uniprot_kb_accession.tsv"),
+        uniparc_xref2proteome_id: create_outfile("_uniparc_xref2proteome_id.tsv"),
+        uniparc_xref2component: create_outfile("_uniparc_xref2component.tsv"),
+        ncbi_gi: create_outfile("_ncbi_gi.tsv"),
+        ncbi_taxonomy_id: create_outfile("_ncbi_taxonomy_id.tsv"),
+        protein_name: create_outfile("_protein_name.tsv"),
+        gene_name: create_outfile("_gene_name.tsv"),
+        chain: create_outfile("_chain.tsv"),
+        uniprot_kb_accession: create_outfile("_uniprot_kb_accession.tsv"),
+        proteome_id: create_outfile("_proteome_id.tsv"),
+        component: create_outfile("_component.tsv"),
+        uniparc_domain: create_outfile("uniparc_domain.tsv"),
+    }
+}
+
+
+pub fn initialize_outputs_compressed(basedir: PathBuf) -> OutputBuffers<GzEncoder<File>> {
     let create_outfile = |filename: &str| {
         let f = File::create(basedir.join(format!("{}{}", filename, ".gz"))).unwrap();
         GzBuilder::new()
@@ -69,97 +99,81 @@ pub fn initialize_outputs(basedir: PathBuf) -> OutputBuffers<GzEncoder<File>> {
     }
 }
 
-
 /// Trait which means that a struct can be serialized to CSV format.
 pub trait Writable {
-    fn to_csv(&self, output: &mut GzEncoder<File>);
+    fn to_csv<T: Write>(&self, output: &mut T);
 }
 
 impl Writable for Uniparc {
-    fn to_csv(&self, output: &mut GzEncoder<File>) {
-        output
-            .write(
-                format!(
-                    "{:?}\t{:?}\t{:?}\t{:?}\n",
-                    self.id,
-                    self.sequence,
-                    self.sequence_length,
-                    self.sequence_checksum
-                ).as_bytes(),
-            )
-            .unwrap();
+    fn to_csv<T: Write>(&self, output: &mut T) {
+        write!(
+            output,
+            "{:?}\t{:?}\t{:?}\t{:?}\n",
+            self.id,
+            self.sequence,
+            self.sequence_length,
+            self.sequence_checksum
+        ).unwrap();
     }
 }
 
 impl Writable for UniparcXRef {
-    fn to_csv(&self, output: &mut GzEncoder<File>) {
-        output
-            .write(
-                format!(
-                    "{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\n",
-                    self.uniparc_id,
-                    self.idx,
-                    self.db_type,
-                    self.db_id,
-                    self.version_i,
-                    self.active,
-                    self.version,
-                    self.created,
-                    self.last
-                ).as_bytes(),
-            )
-            .unwrap();
+    fn to_csv<T: Write>(&self, output: &mut T) {
+        write!(
+            output,
+            "{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\n",
+            self.uniparc_id,
+            self.idx,
+            self.db_type,
+            self.db_id,
+            self.version_i,
+            self.active,
+            self.version,
+            self.created,
+            self.last
+        ).unwrap();
     }
 }
 
 impl Writable for UniparcXRef2Property {
-    fn to_csv(&self, output: &mut GzEncoder<File>) {
-        output
-            .write(
-                format!(
-                    "{:?}\t{:?}\t{:?}\t{:?}\n",
-                    self.uniparc_id,
-                    self.uniparc_xref_idx,
-                    self.property_name,
-                    self.property_idx,
-                ).as_bytes(),
-            )
-            .unwrap();
+    fn to_csv<T: Write>(&self, output: &mut T) {
+        write!(
+            output,
+            "{:?}\t{:?}\t{:?}\t{:?}\n",
+            self.uniparc_id,
+            self.uniparc_xref_idx,
+            self.property_name,
+            self.property_idx,
+        ).unwrap();
     }
 }
 
 impl Writable for UniparcProperty {
-    fn to_csv(&self, output: &mut GzEncoder<File>) {
-        output
-            .write(
-                format!(
-                    "{:?}\t{:?}\t{:?}\t{:?}\n",
-                    self.uniparc_id,
-                    self.name,
-                    self.idx,
-                    self.value,
-                ).as_bytes(),
-            )
-            .unwrap();
+    fn to_csv<T: Write>(&self, output: &mut T) {
+        write!(
+            output,
+            "{:?}\t{:?}\t{:?}\t{:?}\n",
+            self.uniparc_id,
+            self.name,
+            self.idx,
+            self.value,
+        ).unwrap();
     }
 }
 
 impl Writable for UniparcDomain {
-    fn to_csv(&self, output: &mut GzEncoder<File>) {
-        output
-            .write(
-                format!(
-                    "{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\n",
-                    self.uniparc_id,
-                    self.database,
-                    self.database_id,
-                    self.interpro_name,
-                    self.interpro_id,
-                    self.domain_start,
-                    self.domain_end,
-                ).as_bytes(),
-            )
-            .unwrap();
+    fn to_csv<T: Write>(&self, output: &mut T) {
+        write!(
+            output,
+            "{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\t{:?}\n",
+            self.uniparc_id,
+            self.database,
+            self.database_id,
+            self.interpro_name,
+            self.interpro_id,
+            self.domain_start,
+            self.domain_end,
+        ).unwrap();
     }
 }
 
@@ -174,21 +188,18 @@ fn sorted(hash: &HashMap<String, u64>) -> Vec<(&u64, &String)> {
     list
 }
 
-pub fn write_uniparc(outputs: &mut OutputBuffers<GzEncoder<File>>, uniparc: &Uniparc) {
+pub fn write_uniparc<T: Write>(outputs: &mut OutputBuffers<T>, uniparc: &Uniparc) {
     uniparc.to_csv(&mut outputs.uniparc);
 }
 
-pub fn write_uniparc_xrefs(
-    outputs: &mut OutputBuffers<GzEncoder<File>>,
-    uniparc_xrefs: &Vec<UniparcXRef>,
-) {
+pub fn write_uniparc_xrefs<T: Write>(outputs: &mut OutputBuffers<T>, uniparc_xrefs: &Vec<UniparcXRef>) {
     for uniparc_xref in uniparc_xrefs {
         uniparc_xref.to_csv(&mut outputs.uniparc_xref);
     }
 }
 
-pub fn write_uniparc_domains(
-    outputs: &mut OutputBuffers<GzEncoder<File>>,
+pub fn write_uniparc_domains<T: Write>(
+    outputs: &mut OutputBuffers<T>,
     uniparc_domains: &Vec<UniparcDomain>,
 ) {
     for uniparc_domain in uniparc_domains {
@@ -196,8 +207,8 @@ pub fn write_uniparc_domains(
     }
 }
 
-pub fn write_uniparc_xref2properties(
-    headers: &mut OutputBuffers<GzEncoder<File>>,
+pub fn write_uniparc_xref2properties<T: Write>(
+    headers: &mut OutputBuffers<T>,
     uniparc_xref2properties: &Properties<Vec<UniparcXRef2Property>>,
 ) {
     for xref2prop in &uniparc_xref2properties.ncbi_gi {
@@ -226,13 +237,13 @@ pub fn write_uniparc_xref2properties(
     }
 }
 
-pub fn write_uniparc_properties(
-    headers: &mut OutputBuffers<GzEncoder<File>>,
+pub fn write_uniparc_properties<T: Write>(
+    headers: &mut OutputBuffers<T>,
     properties: &Properties<HashMap<String, u64>>,
     uniparc_id: String,
 ) {
     let write_property =
-        |idx: &u64, value: &str, name: &str, output_stream: &mut GzEncoder<File>| {
+        |idx: &u64, value: &str, name: &str, output_stream: &mut T| {
             let property = UniparcProperty {
                 uniparc_id: uniparc_id.clone(),
                 name: name.to_string(),
