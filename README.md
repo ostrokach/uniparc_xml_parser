@@ -4,9 +4,9 @@ Process the UniParc XML file (`uniparc_all.xml.gz`) downloaded from the UniProt 
 
 ## Example
 
-Parsing 1 million lines takes about 5.5 seconds: 
+Parsing 1 million lines takes about 5.5 seconds:
 
-```
+```txt
 $ mkdir uniparc
 $ time bash -c "zcat tests/uniparc_1mil.xml.gz | uniparc_xml_parser >/dev/null"
 
@@ -17,15 +17,25 @@ sys     0m0.132s
 
 The actual `uniparc_all.xml.gz` file is about 5 billion rows.
 
+## Schema
+
+Simplified schema:
+
+<img src="docs/schema/compact.png" width="600px" />
+
+Expanded schema:
+
+<img src="docs/schema/expanded.png" width="600px" />
+
+*Schemas generated with: <https://app.quickdatabasediagrams.com>.*
 
 ## To do
 
 Keep everything in bytes all the way until output.
 
-
 ## FAQ
 
-#### Why not split `uniparc_all.xml.gz` into multiple small files and process them in parallel
+### Why not split `uniparc_all.xml.gz` into multiple small files and process them in parallel
 
 - Splitting the file requires reading the entire file. If we're reading the entire file anyway, why not parse it as we read it?
 - Having a single process which parses `uniparc_all.xml.gz` makes it easier to create an incremental unique index column (e.g. `UniparcXRef.idx`, `Property.idx`, etc.).
