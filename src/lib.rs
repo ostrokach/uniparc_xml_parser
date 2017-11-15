@@ -260,6 +260,12 @@ fn attribute_to_string(a: Attribute) -> (String, String) {
 }
 
 
+enum TextField {
+    Accession,
+    Sequence,
+}
+
+
 /// Main loop
 pub fn run(input_stream: Stdin, basedir: PathBuf) -> Result<usize, Box<Error>> {
     let mut reader = Reader::from_reader(BufReader::new(input_stream));
@@ -285,6 +291,8 @@ pub fn run(input_stream: Stdin, basedir: PathBuf) -> Result<usize, Box<Error>> {
     let mut count = 0;
     let mut buf = Vec::new();
 
+    let mut text_field = TextField::Accession;
+
     loop {
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => {
@@ -304,17 +312,22 @@ pub fn run(input_stream: Stdin, basedir: PathBuf) -> Result<usize, Box<Error>> {
                             e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
                         );
                     }
-                    b"signatureSequenceMatch" => add_signature_sequence_match(
-                        uniparc.id.clone(),
-                        &mut uniparc_domains,
-                        e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
-                    ),
-                    b"sequence" => add_sequence(
-                        &mut uniparc,
-                        e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
-                    ),
+                    b"signatureSequenceMatch" => {
+                        add_signature_sequence_match(
+                            uniparc.id.clone(),
+                            &mut uniparc_domains,
+                            e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
+                        );
+                    }
                     b"accession" => {
-                        // This is where we get the uniparc id from the character field.
+                        text_field = TextField::Accession;
+                    }
+                    b"sequence" => {
+                        text_field = TextField::Sequence;
+                        add_sequence(
+                            &mut uniparc,
+                            e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
+                        );
                     }
                     _ => println!(
                         "Skipping StartElement '{}' with attributes {:?}.",
@@ -324,7 +337,6 @@ pub fn run(input_stream: Stdin, basedir: PathBuf) -> Result<usize, Box<Error>> {
                             .collect::<Vec<_>>()
                     ),
                 }
-                // let name = str::from_utf8(e.name()).unwrap().to_string();
                 current_element.push(e.name().to_ascii_lowercase());
                 depth += 1;
             }
@@ -375,13 +387,17 @@ pub fn run(input_stream: Stdin, basedir: PathBuf) -> Result<usize, Box<Error>> {
                     }
                     _ => {}
                 }
-                // let name = str::from_utf8(e.name()).unwrap().to_string();
                 assert!(current_element.pop().unwrap() == e.name().to_ascii_lowercase());
                 depth -= 1;
             }
-            Ok(Event::Text(text)) => {
-                uniparc.sequence = text.unescape_and_decode(&reader).unwrap();
-            }
+            Ok(Event::Text(text)) => match text_field {
+                TextField::Accession => {
+                    uniparc.id = text.unescape_and_decode(&reader).unwrap();
+                }
+                TextField::Sequence => {
+                    uniparc.sequence = text.unescape_and_decode(&reader).unwrap();
+                }
+            },
             Ok(Event::CData(e)) => println!("Skipping CData '{:?}'.", e),
             Ok(Event::Decl(e)) => println!("Skipping Decl '{:?}'.", e),
             Ok(Event::PI(e)) => println!("Skipping PI '{:?}'.", e),
