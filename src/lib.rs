@@ -412,7 +412,7 @@ pub fn run<T: Write>(
     // buf.clear();
     println!("Depth: {}", depth);
     assert!(depth == 0);
-    Ok(depth)
+    Ok(count)
 }
 
 
