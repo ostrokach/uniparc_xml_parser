@@ -373,6 +373,14 @@ pub fn run(input_stream: Stdin, basedir: PathBuf) -> Result<usize, Box<Error>> {
                         .collect::<Vec<_>>()
                 ),
             },
+            Ok(Event::Text(text)) => match text_field {
+                TextField::Accession => {
+                    uniparc.id = text.unescape_and_decode(&reader).unwrap().replace("\n", "");
+                }
+                TextField::Sequence => {
+                    uniparc.sequence = text.unescape_and_decode(&reader).unwrap().replace("\n", "");
+                }
+            },
             Ok(Event::End(ref e)) => {
                 match e.name() {
                     b"entry" => {
@@ -390,14 +398,6 @@ pub fn run(input_stream: Stdin, basedir: PathBuf) -> Result<usize, Box<Error>> {
                 assert!(current_element.pop().unwrap() == e.name().to_ascii_lowercase());
                 depth -= 1;
             }
-            Ok(Event::Text(text)) => match text_field {
-                TextField::Accession => {
-                    uniparc.id = text.unescape_and_decode(&reader).unwrap();
-                }
-                TextField::Sequence => {
-                    uniparc.sequence = text.unescape_and_decode(&reader).unwrap();
-                }
-            },
             Ok(Event::CData(e)) => println!("Skipping CData '{:?}'.", e),
             Ok(Event::Decl(e)) => println!("Skipping Decl '{:?}'.", e),
             Ok(Event::PI(e)) => println!("Skipping PI '{:?}'.", e),
