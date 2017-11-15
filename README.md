@@ -21,8 +21,6 @@ The actual `uniparc_all.xml.gz` file is about 5 billion rows.
 
 Simplified schema:
 
-![](docs/schema/compact.svg)
-
 <img src="docs/schema/compact.png?raw=true" width="800px" />
 
 Expanded schema:
