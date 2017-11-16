@@ -14,7 +14,11 @@ variables:
 
 .conda_configure: &conda_configure
   before_script:
-    # Conda configure
+    # Cargo
+    - curl https://sh.rustup.rs -sSf | sh
+    - rustup self update
+    - rustup update
+    # Conda
     - conda config --append channels bioconda
     - conda config --append channels ostrokach-forge
     - case "${PACKAGE_VERSION}" in
