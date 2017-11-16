@@ -1,0 +1,25 @@
+{% set name = "uniparc_xml_parser" %}
+{% set version = "0.1.1" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  path: ../
+
+build:
+  number: 0
+
+requirements:
+  build:
+  run:
+
+test:
+  commands:
+    - uniparc_xml_parser --help
+
+about:
+  home: https://gitlab.com/kimlab/uniparc_xml_parser
+  license: MIT
+  summary: Process UniParc XML file into relational TSV tables.
