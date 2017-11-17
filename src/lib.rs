@@ -22,7 +22,7 @@ use model::{Uniparc, UniparcDomain, UniparcXRef, UniparcXRef2Property};
 use properties::Properties;
 use writer::{write_uniparc, write_uniparc_domains, write_uniparc_properties, write_uniparc_xrefs,
              OutputBuffers, write_uniparc_xref2properties};
-
+pub use writer::{initialize_outputs, initialize_outputs_compressed};
 
 /// Add new data
 fn add_uniparc_xref(

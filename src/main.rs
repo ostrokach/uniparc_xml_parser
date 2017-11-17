@@ -7,7 +7,7 @@ use std::env;
 use std::path::PathBuf;
 
 use clap::{App, Arg};
-use uniparc_xml_parser::writer::{initialize_outputs, initialize_outputs_compressed};
+use uniparc_xml_parser::{initialize_outputs, initialize_outputs_compressed};
 
 fn main() {
     let matches = App::new("UniParc XML Parser")
