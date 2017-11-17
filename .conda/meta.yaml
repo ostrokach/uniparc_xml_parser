@@ -1,5 +1,5 @@
 {% set name = "uniparc_xml_parser" %}
-{% set version = "0.1.2-dev" %}
+{% set version = "0.1.2" %}
 
 package:
   name: {{ name }}

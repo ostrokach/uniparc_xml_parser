@@ -1,6 +1,6 @@
 [package]
 name = "uniparc_xml_parser"
-version = "0.1.2-dev"
+version = "0.1.2"
 authors = ["ostrokach <ostrokach@gmail.com>"]
 description = "Scripts for parsing UniParc XML files downloaded from the Uniprot website into CSV files."
 homepage = "https://kimlab.gitlab.io/uniparc_xml_parser"
