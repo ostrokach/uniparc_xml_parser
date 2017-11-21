@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate clap;
 extern crate uniparc_xml_parser;
 
@@ -11,7 +12,7 @@ use uniparc_xml_parser::{initialize_outputs, initialize_outputs_compressed};
 
 fn main() {
     let matches = App::new("UniParc XML Parser")
-        .version("0.1.2")
+        .version(crate_version!())
         .author("Alexey S. <alex.strokach@utoronto.ca>")
         .about("Parse the gynormous UniParc XML file.")
         .arg(
