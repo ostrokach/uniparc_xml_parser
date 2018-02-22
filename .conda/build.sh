@@ -11,7 +11,7 @@ ar = "${AR}"
 EOF
 # Alternatively, we could have used environment variables
 # export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="${CC}"
-# export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_ARCHIVER="${CC}"
+# export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_ARCHIVER="${AR}"
 
 cargo build --release
 
