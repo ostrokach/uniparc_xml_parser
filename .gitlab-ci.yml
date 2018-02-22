@@ -18,8 +18,6 @@ variables:
   before_script:
     # Cargo
     - curl -sSf https://static.rust-lang.org/rustup.sh | sudo sh 2>/dev/null
-    - rustup self update
-    - rustup update
     # Conda environment variables
     - export CONDA_PKGS_DIRS="${CI_PROJECT_DIR}/.conda_packages"
     # Make conda cache and bld folders
