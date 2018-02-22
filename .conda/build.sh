@@ -5,7 +5,7 @@ set -u
 # Set CARGO linker and archiver
 mkdir .cargo
 cat <<EOF > .cargo/config
-[target.*]
+[target.x86_64-unknown-linux-gnu]
 linker = "${CC}"
 ar = "${AR}"
 EOF
@@ -14,6 +14,8 @@ EOF
 # export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_ARCHIVER="${AR}"
 
 cargo build --release
+
+find target
 
 mkdir -p "${PREFIX}/bin"
 cp target/release/uniparc_xml_parser ${PREFIX}/bin/
