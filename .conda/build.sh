@@ -5,7 +5,7 @@ set -u
 # Set CARGO linker and archiver
 mkdir .cargo
 cat <<EOF > .cargo/config
-[target.{}]
+[target.*]
 linker = "${CC}"
 ar = "${AR}"
 EOF
