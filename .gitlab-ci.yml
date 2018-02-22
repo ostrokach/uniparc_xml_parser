@@ -1,50 +1,44 @@
-image: condaforge/linux-anvil:latest
+image: registry.gitlab.com/kimlab/linux-anvil:latest
 
 stages:
   - build
   - test
   - deploy
 
+cache:
+  paths:
+    - .conda_packages
+
 # === Variables ===
 
 variables:
   PACKAGE_VERSION: 0.1.2
 
-# === Build ===
-
 .conda_configure: &conda_configure
   before_script:
     # Cargo
-    - curl https://sh.rustup.rs -sSf | sh
+    - curl -sSf https://static.rust-lang.org/rustup.sh | sudo sh 2>/dev/null
     - rustup self update
     - rustup update
-    # Conda
-    - conda config --append channels bioconda
+    # Conda environment variables
+    - export CONDA_PKGS_DIRS="${CI_PROJECT_DIR}/.conda_packages"
+    # Make conda cache and bld folders
+    - mkdir -p "${CI_PROJECT_DIR}/conda-bld" "${CONDA_PKGS_DIRS}"
+    # Conda configure
     - conda config --append channels ostrokach-forge
-    - case "${PACKAGE_VERSION}" in
-      *dev*)
-        conda config --append channels kimlab/label/dev;
-        conda config --append channels kimlab;
-        conda config --append channels ostrokach/label/dev;
-        conda config --append channels ostrokach;
-      ;;
-      *)
-        conda config --append channels kimlab;
-        conda config --append channels ostrokach;
-      ;;
-      esac
+    - conda config --append channels conda-forge
     - conda update -yq conda
+
+# === Build ===
 
 .build: &build
   stage: build
-  <<: *conda_configure
+  <<: [*conda_configure]
   script:
-    # Build conda packages
-    - cd $CI_PROJECT_DIR/.conda
+    - cd "${CI_PROJECT_DIR}/.conda"
     - conda build .
-    # Save built packages as artifacts
-    - mkdir $CI_PROJECT_DIR/conda-bld
-    - cp -r /opt/conda/conda-bld/{linux-64,noarch} $CI_PROJECT_DIR/conda-bld
+      --no-test
+      --output-folder "${CI_PROJECT_DIR}/conda-bld"
   artifacts:
     paths:
     - conda-bld
@@ -57,12 +51,13 @@ build:
 .test: &test
   stage: test
   script:
-    # Conda install
+    # Restore built packages
     - cp -r $CI_PROJECT_DIR/conda-bld/* /opt/conda/conda-bld/
     - conda index /opt/conda/conda-bld/
-    - conda install -yq --use-local ${CI_PROJECT_NAME}
-    # Test
-    - uniparc_xml_parser --help
+    # Run tests
+    - cd $CI_PROJECT_DIR/.conda
+    - conda build .
+      --test
 
 test:
   <<: [*conda_configure, *test]

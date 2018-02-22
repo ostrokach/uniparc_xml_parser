@@ -9,10 +9,12 @@ source:
   path: ../
 
 build:
-  number: 0
+  number: 1
 
 requirements:
+  host:
   build:
+    - {{ compiler('c') }}
   run:
 
 test:
