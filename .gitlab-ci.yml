@@ -18,7 +18,7 @@ variables:
 .configure:
   before_script:
     # Cargo
-    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh 2>/dev/null
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh  # 2>/dev/null
     # Conda environment variables
     - export CONDA_PKGS_DIRS="${CI_PROJECT_DIR}/.conda_packages"
     # Make conda cache and bld folders
