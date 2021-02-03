@@ -2,10 +2,10 @@
 extern crate clap;
 extern crate uniparc_xml_parser;
 
-use std::io;
-use std::process;
 use std::env;
+use std::io;
 use std::path::PathBuf;
+use std::process;
 
 use clap::{App, Arg};
 use uniparc_xml_parser::{initialize_outputs, initialize_outputs_compressed};
@@ -21,14 +21,14 @@ fn main() {
                 .long("basedir")
                 .takes_value(true)
                 .help("Directory in which to output the files.")
-                .required(false)
+                .required(false),
         )
         .arg(
             Arg::with_name("use-compression")
                 .help("Whether or not the output files should be compressed.")
                 .short("c")
                 .long("use-compression")
-                .required(false)
+                .required(false),
         )
         .get_matches();
 

@@ -1,10 +1,10 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
-use std::collections::HashMap;
 
-use flate2::{Compression, GzBuilder};
 use flate2::write::GzEncoder;
+use flate2::{Compression, GzBuilder};
 
 use model::{Uniparc, UniparcDomain, UniparcProperty, UniparcXRef, UniparcXRef2Property};
 use properties::Properties;
@@ -67,7 +67,6 @@ pub fn initialize_outputs(basedir: PathBuf) -> OutputBuffers<BufWriter<File>> {
     }
 }
 
-
 pub fn initialize_outputs_compressed(basedir: PathBuf) -> OutputBuffers<GzEncoder<File>> {
     let create_outfile = |filename: &str| {
         let f = File::create(basedir.join(format!("{}{}", filename, ".gz"))).unwrap();
@@ -109,11 +108,9 @@ impl Writable for Uniparc {
         write!(
             output,
             "{:?}\t{:?}\t{:?}\t{:?}\n",
-            self.id,
-            self.sequence,
-            self.sequence_length,
-            self.sequence_checksum
-        ).unwrap();
+            self.id, self.sequence, self.sequence_length, self.sequence_checksum
+        )
+        .unwrap();
     }
 }
 
@@ -131,7 +128,8 @@ impl Writable for UniparcXRef {
             self.version,
             self.created,
             self.last
-        ).unwrap();
+        )
+        .unwrap();
     }
 }
 
@@ -140,11 +138,9 @@ impl Writable for UniparcXRef2Property {
         write!(
             output,
             "{:?}\t{:?}\t{:?}\t{:?}\n",
-            self.uniparc_id,
-            self.uniparc_xref_idx,
-            self.property_name,
-            self.property_idx,
-        ).unwrap();
+            self.uniparc_id, self.uniparc_xref_idx, self.property_name, self.property_idx,
+        )
+        .unwrap();
     }
 }
 
@@ -153,11 +149,9 @@ impl Writable for UniparcProperty {
         write!(
             output,
             "{:?}\t{:?}\t{:?}\t{:?}\n",
-            self.uniparc_id,
-            self.name,
-            self.idx,
-            self.value,
-        ).unwrap();
+            self.uniparc_id, self.name, self.idx, self.value,
+        )
+        .unwrap();
     }
 }
 
@@ -173,7 +167,8 @@ impl Writable for UniparcDomain {
             self.interpro_id,
             self.domain_start,
             self.domain_end,
-        ).unwrap();
+        )
+        .unwrap();
     }
 }
 
@@ -192,7 +187,10 @@ pub fn write_uniparc<T: Write>(outputs: &mut OutputBuffers<T>, uniparc: &Uniparc
     uniparc.to_csv(&mut outputs.uniparc);
 }
 
-pub fn write_uniparc_xrefs<T: Write>(outputs: &mut OutputBuffers<T>, uniparc_xrefs: &Vec<UniparcXRef>) {
+pub fn write_uniparc_xrefs<T: Write>(
+    outputs: &mut OutputBuffers<T>,
+    uniparc_xrefs: &Vec<UniparcXRef>,
+) {
     for uniparc_xref in uniparc_xrefs {
         uniparc_xref.to_csv(&mut outputs.uniparc_xref);
     }
@@ -242,16 +240,15 @@ pub fn write_uniparc_properties<T: Write>(
     properties: &Properties<HashMap<String, u64>>,
     uniparc_id: String,
 ) {
-    let write_property =
-        |idx: &u64, value: &str, name: &str, output_stream: &mut T| {
-            let property = UniparcProperty {
-                uniparc_id: uniparc_id.clone(),
-                name: name.to_string(),
-                idx: *idx,
-                value: value.to_string(),
-            };
-            property.to_csv(output_stream);
+    let write_property = |idx: &u64, value: &str, name: &str, output_stream: &mut T| {
+        let property = UniparcProperty {
+            uniparc_id: uniparc_id.clone(),
+            name: name.to_string(),
+            idx: *idx,
+            value: value.to_string(),
         };
+        property.to_csv(output_stream);
+    };
     for (idx, value) in sorted(&properties.ncbi_gi) {
         write_property(idx, value, "ncbi_gi", &mut headers.ncbi_gi);
     }

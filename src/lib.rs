@@ -9,20 +9,22 @@ pub mod writer;
 mod model;
 mod properties;
 
-use std::io::{BufReader, Stdin, Write};
-use std::error::Error;
 use std::collections::HashMap;
+use std::error::Error;
+use std::io::{BufReader, Stdin, Write};
 use std::str;
 
-use quick_xml::reader::Reader;
-use quick_xml::events::Event;
 use quick_xml::events::attributes::Attribute;
+use quick_xml::events::Event;
+use quick_xml::reader::Reader;
 
 use model::{Uniparc, UniparcDomain, UniparcXRef, UniparcXRef2Property};
 use properties::Properties;
-use writer::{write_uniparc, write_uniparc_domains, write_uniparc_properties, write_uniparc_xrefs,
-             OutputBuffers, write_uniparc_xref2properties};
 pub use writer::{initialize_outputs, initialize_outputs_compressed};
+use writer::{
+    write_uniparc, write_uniparc_domains, write_uniparc_properties, write_uniparc_xref2properties,
+    write_uniparc_xrefs, OutputBuffers,
+};
 
 /// Add new data
 fn add_uniparc_xref(
@@ -171,7 +173,6 @@ fn add_signature_sequence_match(
     uniparc_domains.push(uniparc_domain);
 }
 
-
 fn add_interpro_annotation(uniparc_domains: &mut Vec<UniparcDomain>, attributes: Vec<Attribute>) {
     let mut interpro_name = String::new();
     let mut interpro_id = String::new();
@@ -232,7 +233,6 @@ fn add_domain_definitions(uniparc_domains: &mut Vec<UniparcDomain>, attributes: 
     }
 }
 
-
 fn add_sequence(uniparc: &mut Uniparc, attributes: Vec<Attribute>) {
     for attribute in attributes {
         match attribute.key {
@@ -252,19 +252,16 @@ fn add_sequence(uniparc: &mut Uniparc, attributes: Vec<Attribute>) {
     }
 }
 
-
 fn attribute_to_string(a: Attribute) -> (String, String) {
     let key = str::from_utf8(a.key).unwrap().to_string();
     let value = str::from_utf8(a.value).unwrap().to_string();
     (key, value)
 }
 
-
 enum TextField {
     Accession,
     Sequence,
 }
-
 
 /// Main loop
 pub fn run<T: Write>(
@@ -349,15 +346,17 @@ pub fn run<T: Write>(
                         e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
                     );
                 }
-                b"property" => if keep_uniparc_xref {
-                    add_property(
-                        uniparc.id.clone(),
-                        &uniparc_xrefs,
-                        &mut properties,
-                        &mut uniparc_xref2properties,
-                        e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
-                    );
-                },
+                b"property" => {
+                    if keep_uniparc_xref {
+                        add_property(
+                            uniparc.id.clone(),
+                            &uniparc_xrefs,
+                            &mut properties,
+                            &mut uniparc_xref2properties,
+                            e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
+                        );
+                    }
+                }
                 b"ipr" => add_interpro_annotation(
                     &mut uniparc_domains,
                     e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
@@ -414,7 +413,6 @@ pub fn run<T: Write>(
     assert!(depth == 0);
     Ok(count)
 }
-
 
 #[cfg(test)]
 mod tests {
