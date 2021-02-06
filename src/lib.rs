@@ -267,7 +267,7 @@ enum TextField {
 pub fn run<T: Write>(
     input_stream: Stdin,
     mut handlers: OutputBuffers<T>,
-) -> Result<usize, Box<Error>> {
+) -> Result<usize, Box<dyn Error>> {
     let mut reader = Reader::from_reader(BufReader::new(input_stream));
     reader.trim_text(true);
 
