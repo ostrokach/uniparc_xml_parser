@@ -6,9 +6,9 @@ stages:
   - test
   - deploy
 
-cache:
-  paths:
-    - .conda_packages
+# cache:
+#   paths:
+#     - .conda_packages
 
 # === Variables ===
 
