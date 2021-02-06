@@ -42,10 +42,7 @@ build:
   extends:
     - .configure
   script:
-    - cd "${CI_PROJECT_DIR}/.conda"
-    - conda build .
-      --no-test
-      --output-folder "${CI_PROJECT_DIR}/conda-bld"
+    - conda build "${CI_PROJECT_DIR}/.conda" --output-folder "${CI_PROJECT_DIR}/conda-bld"
   artifacts:
     paths:
       - conda-bld
