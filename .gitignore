@@ -13,5 +13,3 @@ Cargo.lock
 .cache
 .mypy_cache
 __pycache__
-uniparc
-tests
