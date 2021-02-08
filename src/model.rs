@@ -1,6 +1,6 @@
 #[derive(Default)]
 pub struct Uniparc {
-    pub id: String,
+    pub uniparc_id: String,
     pub sequence: String,
     pub sequence_length: u32,
     pub sequence_checksum: String,
@@ -8,7 +8,7 @@ pub struct Uniparc {
 
 pub struct UniparcXRef {
     pub uniparc_id: String,
-    pub idx: u64,
+    pub xref_id: u64,
     pub db_type: String,
     pub db_id: String,
     pub version_i: String,
@@ -18,17 +18,10 @@ pub struct UniparcXRef {
     pub last: String,
 }
 
-pub struct UniparcXRef2Property {
-    pub uniparc_id: String,
-    pub uniparc_xref_idx: u64,
-    pub property_name: String,
-    pub property_idx: u64,
-}
-
 pub struct UniparcProperty {
     pub uniparc_id: String,
-    pub name: String,
-    pub idx: u64,
+    pub xref_id: u64,
+    pub property: String,
     pub value: String,
 }
 

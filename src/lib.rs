@@ -9,7 +9,6 @@ pub mod writer;
 mod model;
 mod properties;
 
-use std::collections::HashMap;
 use std::error::Error;
 use std::io::{BufReader, Stdin, Write};
 use std::str;
@@ -18,12 +17,12 @@ use quick_xml::events::attributes::Attribute;
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 
-use model::{Uniparc, UniparcDomain, UniparcXRef, UniparcXRef2Property};
+use model::{Uniparc, UniparcDomain, UniparcProperty, UniparcXRef};
 use properties::Properties;
 pub use writer::{initialize_outputs, initialize_outputs_compressed};
 use writer::{
-    write_uniparc, write_uniparc_domains, write_uniparc_properties, write_uniparc_xref2properties,
-    write_uniparc_xrefs, OutputBuffers,
+    write_uniparc, write_uniparc_domains, write_uniparc_properties, write_uniparc_xrefs,
+    OutputBuffers,
 };
 
 /// Add new data
@@ -34,7 +33,7 @@ fn add_uniparc_xref(
 ) -> bool {
     let mut uniparc_xref = UniparcXRef {
         uniparc_id: uniparc_id,
-        idx: (uniparc_xrefs.len() + 1) as u64,
+        xref_id: (uniparc_xrefs.len() + 1) as u64,
         db_type: String::new(),
         db_id: String::new(),
         version_i: String::new(),
@@ -81,65 +80,42 @@ fn add_uniparc_xref(
 fn add_property(
     uniparc_id: String,
     uniparc_xrefs: &Vec<UniparcXRef>,
-    properties: &mut Properties<HashMap<String, u64>>,
-    uniparc_xref2properties: &mut Properties<Vec<UniparcXRef2Property>>,
+    properties: &mut Properties<Vec<UniparcProperty>>,
     attributes: Vec<Attribute>,
 ) {
     let attr_type = str::from_utf8(attributes[0].value).unwrap();
     let mut attr_value = str::from_utf8(attributes[1].value).unwrap().to_string();
 
-    let uniparc_xref_idx = uniparc_xrefs.len() as u64;
+    let xref_id = uniparc_xrefs.len() as u64;
+
     if attr_type == "chain" {
         assert!(uniparc_xrefs.last().unwrap().db_type == "PDB");
         attr_value = uniparc_xrefs.last().unwrap().db_id.clone() + &attr_value;
     }
 
-    let (property, uniparc_xref2property) = match attr_type {
-        "NCBI_GI" => (
-            &mut properties.ncbi_gi,
-            &mut uniparc_xref2properties.ncbi_gi,
-        ),
+    let (property_vec, attr_type_clean) = match attr_type {
+        "NCBI_GI" => (&mut properties.ncbi_gi, String::from("ncbi_gi")),
         "NCBI_taxonomy_id" => (
             &mut properties.ncbi_taxonomy_id,
-            &mut uniparc_xref2properties.ncbi_taxonomy_id,
+            String::from("ncbi_taxonomy_id"),
         ),
-        "protein_name" => (
-            &mut properties.protein_name,
-            &mut uniparc_xref2properties.protein_name,
-        ),
-        "gene_name" => (
-            &mut properties.gene_name,
-            &mut uniparc_xref2properties.gene_name,
-        ),
-        "chain" => (&mut properties.chain, &mut uniparc_xref2properties.chain),
+        "protein_name" => (&mut properties.protein_name, String::from("protein_name")),
+        "gene_name" => (&mut properties.gene_name, String::from("gene_name")),
+        "chain" => (&mut properties.pdb_chain, String::from("pdb_chain")),
         "UniProtKB_accession" => (
             &mut properties.uniprot_kb_accession,
-            &mut uniparc_xref2properties.uniprot_kb_accession,
+            String::from("uniprot_kb_accession"),
         ),
-        "proteome_id" => (
-            &mut properties.proteome_id,
-            &mut uniparc_xref2properties.proteome_id,
-        ),
-        "component" => (
-            &mut properties.component,
-            &mut uniparc_xref2properties.component,
-        ),
+        "proteome_id" => (&mut properties.proteome_id, String::from("proteome_id")),
+        "component" => (&mut properties.component, String::from("component")),
         _ => panic!("Unmatched value: '{:?}'.", attr_type),
     };
 
-    let property_idx: u64;
-    if !property.contains_key(&attr_value) {
-        property_idx = (property.len() + 1) as u64;
-        property.insert(attr_value, property_idx);
-    } else {
-        property_idx = *property.get(&attr_value).unwrap();
-    }
-
-    uniparc_xref2property.push(UniparcXRef2Property {
+    property_vec.push(UniparcProperty {
         uniparc_id,
-        uniparc_xref_idx,
-        property_name: String::from(attr_type).to_ascii_lowercase(),
-        property_idx,
+        xref_id,
+        property: attr_type_clean,
+        value: attr_value,
     });
 }
 
@@ -273,10 +249,9 @@ pub fn run<T: Write>(
 
     // Variables created for each UniParc ID
     let mut uniparc: Uniparc = Default::default();
-    let mut uniparc_xrefs: Vec<UniparcXRef> = Vec::new();
-    let mut uniparc_domains: Vec<UniparcDomain> = Vec::new();
-    let mut properties: Properties<HashMap<String, u64>> = Default::default();
-    let mut uniparc_xref2properties: Properties<Vec<UniparcXRef2Property>> = Default::default();
+    let mut domains: Vec<UniparcDomain> = Vec::new();
+    let mut xrefs: Vec<UniparcXRef> = Vec::new();
+    let mut properties: Properties<Vec<UniparcProperty>> = Default::default();
 
     let mut keep_uniparc_xref = true;
     let mut current_element = Vec::new();
@@ -297,23 +272,22 @@ pub fn run<T: Write>(
                 match e.name() {
                     b"entry" => {
                         uniparc = Default::default();
-                        uniparc_xrefs = Vec::new();
-                        uniparc_domains = Vec::new();
+                        domains = Vec::new();
+                        xrefs = Vec::new();
                         properties = Default::default();
-                        uniparc_xref2properties = Default::default();
                         count += 1;
                     }
                     b"dbReference" => {
                         keep_uniparc_xref = add_uniparc_xref(
-                            uniparc.id.clone(),
-                            &mut uniparc_xrefs,
+                            uniparc.uniparc_id.clone(),
+                            &mut xrefs,
                             e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
                         );
                     }
                     b"signatureSequenceMatch" => {
                         add_signature_sequence_match(
-                            uniparc.id.clone(),
-                            &mut uniparc_domains,
+                            uniparc.uniparc_id.clone(),
+                            &mut domains,
                             e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
                         );
                     }
@@ -341,28 +315,27 @@ pub fn run<T: Write>(
             Ok(Event::Empty(ref e)) => match e.name() {
                 b"dbReference" => {
                     add_uniparc_xref(
-                        uniparc.id.clone(),
-                        &mut uniparc_xrefs,
+                        uniparc.uniparc_id.clone(),
+                        &mut xrefs,
                         e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
                     );
                 }
                 b"property" => {
                     if keep_uniparc_xref {
                         add_property(
-                            uniparc.id.clone(),
-                            &uniparc_xrefs,
+                            uniparc.uniparc_id.clone(),
+                            &xrefs,
                             &mut properties,
-                            &mut uniparc_xref2properties,
                             e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
                         );
                     }
                 }
                 b"ipr" => add_interpro_annotation(
-                    &mut uniparc_domains,
+                    &mut domains,
                     e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
                 ),
                 b"lcn" => add_domain_definitions(
-                    &mut uniparc_domains,
+                    &mut domains,
                     e.attributes().map(|a| a.unwrap()).collect::<Vec<_>>(),
                 ),
                 _ => println!(
@@ -375,7 +348,8 @@ pub fn run<T: Write>(
             },
             Ok(Event::Text(text)) => match text_field {
                 TextField::Accession => {
-                    uniparc.id = text.unescape_and_decode(&reader).unwrap().replace("\n", "");
+                    uniparc.uniparc_id =
+                        text.unescape_and_decode(&reader).unwrap().replace("\n", "");
                 }
                 TextField::Sequence => {
                     uniparc.sequence = text.unescape_and_decode(&reader).unwrap().replace("\n", "");
@@ -385,10 +359,9 @@ pub fn run<T: Write>(
                 match e.name() {
                     b"entry" => {
                         write_uniparc(&mut handlers, &uniparc);
-                        write_uniparc_xrefs(&mut handlers, &uniparc_xrefs);
-                        write_uniparc_xref2properties(&mut handlers, &uniparc_xref2properties);
-                        write_uniparc_properties(&mut handlers, &properties, uniparc.id.clone());
-                        write_uniparc_domains(&mut handlers, &uniparc_domains);
+                        write_uniparc_domains(&mut handlers, &domains);
+                        write_uniparc_xrefs(&mut handlers, &xrefs);
+                        write_uniparc_properties(&mut handlers, &properties);
                         if count % 10_000 == 0 {
                             println!("Finished processing UniParc number {}...", count);
                         }
