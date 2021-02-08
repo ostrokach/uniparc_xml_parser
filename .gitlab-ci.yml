@@ -6,25 +6,26 @@ stages:
   - test
   - deploy
 
-# cache:
-#   paths:
-#     - .conda_packages
-
 # === Variables ===
 
 variables:
   PACKAGE_VERSION: 0.1.3
 
+# === Configurations ===
+
+.skip-custom-pipelines:
+  except:
+    variables:
+      - $UPDATE_TABLES
+
 .configure:
+  extends:
+    - .skip-custom-pipelines
   before_script:
-    # Cargo
+    # Rust
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - source $HOME/.cargo/env
-    # Conda environment variables
-    - export CONDA_PKGS_DIRS="${CI_PROJECT_DIR}/.conda_packages"
-    # Make conda cache and bld folders
-    - mkdir -p "${CI_PROJECT_DIR}/conda-bld" "${CONDA_PKGS_DIRS}"
-    # Conda configure
+    # Conda
     - |
       cat <<EOF > ~/.condarc
       channel_priority: true
@@ -42,6 +43,7 @@ build:
   extends:
     - .configure
   script:
+    - mkdir -p "${CI_PROJECT_DIR}/conda-bld"
     - conda build "${CI_PROJECT_DIR}/.conda" --output-folder "${CI_PROJECT_DIR}/conda-bld"
   artifacts:
     paths:
@@ -60,7 +62,8 @@ test:
     - conda update -yq conda
     - conda create -n test -q -c file://${CI_PROJECT_DIR}/conda-bld --strict-channel-priority
       "python=3.9" ${CI_PROJECT_NAME} pytest || true
-    - source activate test
+    - conda activate test
+    - 
     # Run tests
     - python -m pytest -c setup.cfg --color=yes "tests/"
 
@@ -99,3 +102,58 @@ deploy:
     - build
   only:
     - tags
+
+# === Run pipeline ===
+
+run:
+  image: ubuntu:20.04
+  before_script:
+    # Install global dependencies
+    - apt-get update -y -qq -o=Dpkg::Use-Pty=0
+    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 curl openssl gzip gettext-base
+    # Install ssh client
+    - "which ssh-agent || ( apt-get install -y -qq -o=Dpkg::Use-Pty=0 openssh-client -y )"
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    # Test that ssh client works
+    - ssh strokach@conda-envs.proteinsolver.org "echo hello"
+    # Install gcloud
+    - echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 apt-transport-https ca-certificates gnupg
+    - curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+    - apt-get update -y -qq -o=Dpkg::Use-Pty=0
+    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 google-cloud-sdk
+    - gcloud --version
+    # Install conda
+    - |
+      cat <<EOF > ~/.condarc
+      channel_priority: strict
+      channels:
+        - ostrokach-forge
+        - conda-forge
+        - defaults
+      EOF
+    - curl -s -L https://github.com/conda-forge/miniforge/releases/download/4.9.2-5/Mambaforge-4.9.2-5-Linux-x86_64.sh > miniconda.sh
+    - openssl dgst -sha256 miniconda.sh | grep 7f0ad0c2f367751f7878d25a7bc1b4aa48b8dcea864daf9bc09acb595102368b
+    - sh miniconda.sh -b -p /opt/conda
+    - source /opt/conda/etc/profile.d/conda.sh
+  scripts:
+    - conda activate base
+    - mamba install 'python=3.9' pandas uniparc-xml-parser
+    - mkdir output
+    - cd output
+    - curl -sS ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz | zcat | uniparc_xml_parser
+    - python ../scripts/tsv_to_parquet.py *.tsv
+    # Upload Parquet files to our server
+    - rsync -rv --info=progress2 -p --chmod=ug=rwX,o=rX *.parquet strokach@conda-envs.proteinsolver.org:/share/uniparc/
+    # Update BigQuery tables
+    - bq load --replace --clustering_fields uniparc_id uniparc.parquet
+    - bq load --replace --clustering_fields database,uniparc_id domain.parquet
+    - bq load --replace --clustering_fields database,uniparc_id domain.parquet
+
+  only:
+    variables:
+      - $UPDATE_TABLES
