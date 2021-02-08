@@ -63,7 +63,6 @@ test:
     - conda create -n test -q -c file://${CI_PROJECT_DIR}/conda-bld --strict-channel-priority
       "python=3.9" ${CI_PROJECT_NAME} pytest || true
     - conda activate test
-    - 
     # Run tests
     - python -m pytest -c setup.cfg --color=yes "tests/"
 
@@ -105,7 +104,7 @@ deploy:
 
 # === Run pipeline ===
 
-run:
+run-pipeline:
   image: ubuntu:20.04
   before_script:
     # Install global dependencies
@@ -140,7 +139,7 @@ run:
     - openssl dgst -sha256 miniconda.sh | grep 7f0ad0c2f367751f7878d25a7bc1b4aa48b8dcea864daf9bc09acb595102368b
     - sh miniconda.sh -b -p /opt/conda
     - source /opt/conda/etc/profile.d/conda.sh
-  scripts:
+  script:
     - conda activate base
     - mamba install 'python=3.9' pandas uniparc-xml-parser
     - mkdir output
@@ -153,7 +152,6 @@ run:
     - bq load --replace --clustering_fields uniparc_id uniparc.parquet
     - bq load --replace --clustering_fields database,uniparc_id domain.parquet
     - bq load --replace --clustering_fields database,uniparc_id domain.parquet
-
   only:
     variables:
       - $UPDATE_TABLES
