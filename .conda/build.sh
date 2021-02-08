@@ -15,7 +15,5 @@ EOF
 
 cargo build --release
 
-find target
-
 mkdir -p "${PREFIX}/bin"
 cp target/release/uniparc_xml_parser ${PREFIX}/bin/
