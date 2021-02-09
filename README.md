@@ -42,8 +42,19 @@ The output is a set of CSV (or more specifically TSV) files:
 
 ```bash
 $ ls
-component.tsv  gene_name.tsv  ncbi_taxonomy_id.tsv  protein_name.tsv  uniparc.tsv               xref.tsv
-domain.tsv     ncbi_gi.tsv    pdb_chain.tsv         proteome_id.tsv   uniprot_kb_accession.tsv
+-rw-r--r-- 1 user group 174G Feb  9 13:52 xref.tsv
+-rw-r--r-- 1 user group 149G Feb  9 13:52 domain.tsv
+-rw-r--r-- 1 user group 138G Feb  9 13:52 uniparc.tsv
+-rw-r--r-- 1 user group 107G Feb  9 13:52 protein_name.tsv
+-rw-r--r-- 1 user group  99G Feb  9 13:52 ncbi_taxonomy_id.tsv
+-rw-r--r-- 1 user group  74G Feb  9 20:13 uniparc.parquet
+-rw-r--r-- 1 user group  64G Feb  9 13:52 gene_name.tsv
+-rw-r--r-- 1 user group  39G Feb  9 13:52 component.tsv
+-rw-r--r-- 1 user group  32G Feb  9 13:52 proteome_id.tsv
+-rw-r--r-- 1 user group  15G Feb  9 13:52 ncbi_gi.tsv
+-rw-r--r-- 1 user group  21M Feb  9 13:52 pdb_chain.tsv
+-rw-r--r-- 1 user group  12M Feb  9 13:52 uniprot_kb_accession.tsv
+-rw-r--r-- 1 user group 656K Feb  9 04:04 uniprot_kb_accession.parquet
 ```
 
 ## Schema
