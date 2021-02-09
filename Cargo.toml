@@ -14,5 +14,5 @@ exclude = [
 
 [dependencies]
 quick-xml = "0.9.4"
-flate2 = "0.2"
-clap = "2.27.1"
+flate2 = "1.0.20"
+clap = "2.33.2"
