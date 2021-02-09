@@ -34,6 +34,8 @@ variables:
         - conda-forge
         - defaults
       EOF
+    - source /opt/conda/etc/profile.d/conda.sh
+    - conda activate base
     - conda update -yq conda
 
 # === Build ===
