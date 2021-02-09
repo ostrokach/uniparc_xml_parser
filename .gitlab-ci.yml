@@ -101,22 +101,37 @@ test:
 
 # === Deploy ===
 
-deploy:
+deploy-cargo:
   stage: deploy
   extends:
     - .configure
   script:
-    # Upload to cargo
     - cargo login ${CARGO_TOKEN}
     - cargo publish
-    # Upload to generic package registry
-    - |
-      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file $CI_PROJECT_DIR/package/uniparc_xml_parser
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${PACKAGE_VERSION}/uniparc_xml_parser"
-    # Upload to anaconda
+  only:
+    - tags
+
+deploy-conda:
+  stage: deploy
+  extends:
+    - .configure
+  script:
     - anaconda -t $ANACONDA_TOKEN upload $CI_PROJECT_DIR/conda-bld/*/*.tar.bz2 -u ostrokach-forge --no-progress
   dependencies:
     - build
+  only:
+    - tags
+
+deploy-package:
+  stage: deploy
+  extends:
+    - .configure
+  script:
+    - |
+      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file $CI_PROJECT_DIR/package/uniparc_xml_parser
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${PACKAGE_VERSION}/uniparc_xml_parser"
+  dependencies:
+    - test
   only:
     - tags
 
