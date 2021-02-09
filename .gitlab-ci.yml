@@ -165,13 +165,25 @@ run-pipeline:
     - mkdir output
     - cd output
     - curl -sS ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz | zcat | uniparc_xml_parser
-    - python ../scripts/tsv_to_parquet.py *.tsv
+    # Convert to Parquet files
+    - python ../scripts/csv_to_parquet.py -f uniparc.tsv -c uniparc_id,sequence,sequence_length,sequence_checksum ;
+    - python ../scripts/csv_to_parquet.py -f domain.tsv -c uniparc_id,database,database_id,interpro_name,interpro_id,domain_start,domain_end ;
+    - python ../scripts/csv_to_parquet.py -f xref.tsv -c uniparc_id,xref_id,db_type,db_id,version_i,active,version,created,last ;
+    - for property in component gene_name ncbi_gi ncbi_taxonomy_id pdb_chain protein_name proteome_id uniprot_kb_accession ; do
+      echo ${property} ;
+      python ../scripts/csv_to_parquet.py -f ${property}.tsv -c uniparc_id,xref_id,property,value ;
+      done
     # Upload Parquet files to our server
-    - rsync -rv --info=progress2 -p --chmod=ug=rwX,o=rX *.parquet strokach@conda-envs.proteinsolver.org:/share/uniparc/
+    - rsync -rv --info=progress2 -p --chmod=ug=rwX,o=rX *.parquet strokach@conda-envs.proteinsolver.org:/share/data/uniparc/
     # Update BigQuery tables
     - bq load --replace --clustering_fields uniparc_id uniparc.parquet
     - bq load --replace --clustering_fields database,uniparc_id domain.parquet
-    - bq load --replace --clustering_fields database,uniparc_id domain.parquet
+    - bq load --replace --clustering_fields db_type,uniparc_id,xref_id xref.parquet
+    - for property in component gene_name ncbi_gi ncbi_taxonomy_id pdb_chain protein_name proteome_id uniprot_kb_accession ; do
+      echo ${property} ;
+      bq load --replace --clustering_fields uniparc_id,xref_id ${property}.parquet ;
+      done
+
   only:
     variables:
       - $UPDATE_TABLES
