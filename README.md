@@ -92,7 +92,7 @@ Parquet files containing the processed data are available at the following URL a
 
 ### Google BigQuery
 
-The data can also be queried directly using Google BigQuery: <https://console.cloud.google.com/bigquery?project=ostrokach-data&p=ostrokach-data&page=dataset&d=uniparc>.
+The latest data can also be queried directly using Google BigQuery: <https://console.cloud.google.com/bigquery?project=ostrokach-data&p=ostrokach-data&page=dataset&d=uniparc>.
 
 ## Benchmarks
 
@@ -110,7 +110,9 @@ The actual `uniparc_all.xml.gz` file has around 373,914,570 elements.
 
 ## Roadmap
 
-- [ ] Keep everything in bytes all the way until output.
+- [ ] Add support for writing Apache Parquet files directly.
+- [ ] Add support for writing output to object stores (such as S3 and GCS).
+- [ ] Avoid decoding the input into strings (keep everything as bytes throughout).
 
 ## FAQ (Frequently Asked Questions)
 
