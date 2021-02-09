@@ -11,6 +11,7 @@ def csv_to_parquet(
     csv_file: Path, parquet_file: Path, *, delimiter: str, column_names: List[str]
 ) -> None:
     block_size = 1 << 24  # 16 MB
+    read_options = csv.ReadOptions(column_names=column_names, block_size=block_size)
     parse_options = csv.ParseOptions(delimiter=delimiter)
     writer = None
     with csv.open_csv(
@@ -18,7 +19,7 @@ def csv_to_parquet(
     ) as csv_reader:
         for batch in tqdm(csv_reader):
             if writer is None:
-                writer = pq.ParquetWriter(parquet_file, csv_reader.schema)
+                writer = pq.ParquetWriter(parquet_file, csv_reader.schema, compression="zstd")
             table = pa.Table.from_batches([batch])
             writer.write_table(table)
     if writer is not None:
