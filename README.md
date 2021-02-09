@@ -30,35 +30,24 @@ The generated CSV files conform to the following schema:
 
 ## Benchmarks
 
-Parsing 1 million lines takes about 5.5 seconds (the process is mostly IO-bound):
-
-```txt
-$ mkdir uniparc
-$ time bash -c "zcat tests/uniparc_1mil.xml.gz | uniparc_xml_parser >/dev/null"
-
-real    0m5.564s
-user    0m5.528s
-sys     0m0.132s
-```
-
-The actual `uniparc_all.xml.gz` file is about 5 billion rows.
-
 Parsing 10,000 XML entires takes around 30 seconds (the process is mostly IO-bound):
 
 ```bash
-$ time bash -c "zcat ../data/uniparc_top_10000.xml.gz | ./uniparc_xml_parser" >/dev/null
+$ time bash -c "zcat uniparc_top_10k.xml.gz | uniparc_xml_parser >/dev/null"
 
 real    0m33.925s
 user    0m36.800s
 sys     0m1.892s
 ```
 
+The actual `uniparc_all.xml.gz` file has around 373,914,570 elements.
+
 ## FAQ (Frequently Asked Questions)
 
 **Why not split `uniparc_all.xml.gz` into multiple small files and process them in parallel?**
 
 - Splitting the file requires reading the entire file. If we're reading the entire file anyway, why not parse it as we read it?
-- Having a single process which parses `uniparc_all.xml.gz` makes it easier to create an incremental unique index column (e.g. `UniparcXRef.idx`, `Property.idx`, etc.).
+- Having a single process which parses `uniparc_all.xml.gz` makes it easier to create an incremental unique index column (e.g. `xref.xref_id`).
 
 ## FUQ (Frequently Used Queries)
 
