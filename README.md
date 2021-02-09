@@ -6,6 +6,28 @@
 
 Process the UniParc XML file (`uniparc_all.xml.gz`) downloaded from the UniProt [website](http://www.uniprot.org/downloads) into CSV files that can be loaded into a relational database.
 
+## Installation
+
+### Binaries
+
+Linux binaries are available here: https://gitlab.com/ostrokach/uniparc_xml_parser/-/packages.
+
+### Cargo
+
+Use [`cargo`](https://crates.io/) to compile and install `uniparc_xml_parser` for your target platform:
+
+```bash
+cargo install uniparc_xml_parser
+```
+
+### Conda
+
+Use [`conda`](https://docs.conda.io/en/latest/miniconda.html) to install precompiled binaries:
+
+```bash
+conda install -c ostrokach-forge uniparc_xml_parser
+```
+
 ## Usage
 
 Uncompressed XML data can be piped into `uniparc_xml_parser` in order to
