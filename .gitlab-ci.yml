@@ -127,7 +127,7 @@ deploy-package:
   extends:
     - .configure
   script:
-    - |
+    - >
       curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file $CI_PROJECT_DIR/package/uniparc_xml_parser
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${PACKAGE_VERSION}/uniparc_xml_parser"
   dependencies:
@@ -189,12 +189,12 @@ run-pipeline:
     # Upload Parquet files to our server
     - rsync -rv --info=progress2 -p --chmod=ug=rwX,o=rX *.parquet strokach@conda-envs.proteinsolver.org:/share/data/uniparc/
     # Update BigQuery tables
-    - bq load --replace --clustering_fields uniparc_id uniparc.parquet
-    - bq load --replace --clustering_fields database,uniparc_id domain.parquet
-    - bq load --replace --clustering_fields db_type,uniparc_id,xref_id xref.parquet
+    - bq load --source_format=PARQUET --replace --clustering_fields uniparc_id ostrokach-data:uniparc.uniparc uniparc.parquet
+    - bq load --source_format=PARQUET --replace --clustering_fields database,uniparc_id ostrokach-data:uniparc.domain domain.parquet
+    - bq load --source_format=PARQUET --replace --clustering_fields db_type,uniparc_id,xref_id ostrokach-data:uniparc.xref xref.parquet
     - for property in component gene_name ncbi_gi ncbi_taxonomy_id pdb_chain protein_name proteome_id uniprot_kb_accession ; do
       echo ${property} ;
-      bq load --replace --clustering_fields uniparc_id,xref_id ${property}.parquet ;
+      bq load --source_format=PARQUET --replace --clustering_fields uniparc_id,xref_id ostrokach-data:uniparc.${property} ${property}.parquet ;
       done
   only:
     variables:
