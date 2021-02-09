@@ -30,7 +30,7 @@ The generated CSV files conform to the following schema:
 
 ## Benchmarks
 
-Parsing 1 million lines takes about 5.5 seconds:
+Parsing 1 million lines takes about 5.5 seconds (the process is mostly IO-bound):
 
 ```txt
 $ mkdir uniparc
@@ -43,10 +43,10 @@ sys     0m0.132s
 
 The actual `uniparc_all.xml.gz` file is about 5 billion rows.
 
-Parsing 10,000 XML entires takes around 30 seconds:
+Parsing 10,000 XML entires takes around 30 seconds (the process is mostly IO-bound):
 
 ```bash
-time bash -c "zcat ../data/uniparc_top_10000.xml.gz | ./uniparc_xml_parser" >/dev/null
+$ time bash -c "zcat ../data/uniparc_top_10000.xml.gz | ./uniparc_xml_parser" >/dev/null
 
 real    0m33.925s
 user    0m36.800s
