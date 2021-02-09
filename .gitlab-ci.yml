@@ -143,7 +143,7 @@ run-pipeline:
     - curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
     - apt-get update -y -qq -o=Dpkg::Use-Pty=0
     - apt-get install -y -qq -o=Dpkg::Use-Pty=0 google-cloud-sdk
-    - gcloud --version
+    - gcloud auth activate-service-account --key-file="${GCLOUD_SERVICE_ACCOUNT_FILE}"
     # Install conda
     - |
       cat <<EOF > ~/.condarc
