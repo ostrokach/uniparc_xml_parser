@@ -82,21 +82,19 @@ test:
 
 # === Pages ===
 
-pages:
+.pages:
   stage: test
   extends:
     - .configure
   dependencies:
     - build
   script:
-    # Conda install
-    - cp -r $CI_PROJECT_DIR/conda-bld/* /opt/conda/conda-bld/
-    - conda index /opt/conda/conda-bld/
-    - conda install -yq --use-local "python=$PYTHON_VERSION" $CI_PROJECT_NAME
+    # Install requirements
+    - conda create -n test -q -c file://${CI_PROJECT_DIR}/conda-bld "python=3.9"
+    - conda activate test
+    - python -m pip install -r docs/requirements.txt
     # Build docs
-    - conda install -yq nbconvert ipython ipykernel pandoc
-    - pip install -q sphinx sphinx_rtd_theme recommonmark nbsphinx
-    - sphinx-build docs public
+    - mkdocs build docs
   dependencies:
     - build
   artifacts:
