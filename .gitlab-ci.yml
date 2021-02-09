@@ -139,6 +139,15 @@ deploy-package:
 
 run-pipeline:
   image: ubuntu:20.04
+  tags:
+    - k8s
+  variables:
+    KUBERNETES_CPU_REQUEST: 0.92
+    KUBERNETES_CPU_LIMIT: 4.0
+    KUBERNETES_MEMORY_REQUEST: 3.6G
+    KUBERNETES_MEMORY_LIMIT: 8.0G
+    KUBERNETES_EPHEMERAL_STORAGE_REQUEST: 600G
+    KUBERNETES_EPHEMERAL_STORAGE_LIMIT: 1T
   before_script:
     # Install global dependencies
     - apt-get update -y -qq -o=Dpkg::Use-Pty=0
@@ -153,7 +162,9 @@ run-pipeline:
     # Test that ssh client works
     - ssh strokach@conda-envs.proteinsolver.org "echo hello"
     # Install gcloud
-    - echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+    - >
+      echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main"
+      | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
     - apt-get install -y -qq -o=Dpkg::Use-Pty=0 apt-transport-https ca-certificates gnupg
     - curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
     - apt-get update -y -qq -o=Dpkg::Use-Pty=0
@@ -179,9 +190,8 @@ run-pipeline:
     - cd output
     - >
       curl -sS ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz
-      | head -c 100000000
       | zcat
-      | uniparc_xml_parser || true
+      | uniparc_xml_parser
     # Convert to Parquet files
     - python ../scripts/csv_to_parquet.py -f uniparc.tsv -c uniparc_id,sequence,sequence_length,sequence_checksum
     - python ../scripts/csv_to_parquet.py -f domain.tsv -c uniparc_id,database,database_id,interpro_name,interpro_id,domain_start,domain_end
@@ -200,6 +210,7 @@ run-pipeline:
       echo ${property} ;
       bq load --source_format=PARQUET --replace --clustering_fields uniparc_id,xref_id ostrokach-data:uniparc.${property} ${property}.parquet ;
       done
+  timeout: 3 days
   only:
     variables:
       - $UPDATE_TABLES
