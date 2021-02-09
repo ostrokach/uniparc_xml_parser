@@ -108,6 +108,7 @@ deploy-cargo:
   script:
     - cargo login ${CARGO_TOKEN}
     - cargo publish
+  dependencies: []
   only:
     - tags
 
