@@ -64,7 +64,19 @@ test:
       "python=3.9" ${CI_PROJECT_NAME} pytest || true
     - conda activate test
     # Run tests
-    - python -m pytest -c setup.cfg --color=yes "tests/"
+    - uniparc_xml_parser --help
+    # - python -m pytest -c setup.cfg --color=yes "tests/"
+    # Save binary for later
+    - mkdir package/
+    - cp $(which uniparc_xml_parser) package/
+  artifacts:
+    paths:
+      - package/
+
+# download:
+#   stage: download
+#   script:
+#     - 'wget --header="JOB-TOKEN: $CI_JOB_TOKEN" ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/my_package/0.0.1/file.txt'
 
 # === Pages ===
 
@@ -96,6 +108,12 @@ deploy:
   extends:
     - .configure
   script:
+    # Upload to cargo
+    - cargo publish
+    # Upload to generic package registry
+    - curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file $CI_PROJECT_DIR/package/uniparc_xml_parser
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${PACKAGE_VERSION}/uniparc_xml_parser"
+    # Upload to anaconda
     - anaconda -t $ANACONDA_TOKEN upload $CI_PROJECT_DIR/conda-bld/*/*.tar.bz2 -u ostrokach-forge --no-progress
   dependencies:
     - build
@@ -141,7 +159,7 @@ run-pipeline:
     - source /opt/conda/etc/profile.d/conda.sh
   script:
     - conda activate base
-    - mamba install 'python=3.9' pandas uniparc-xml-parser
+    - mamba install 'python=3.9' pyarrow uniparc-xml-parser
     - mkdir output
     - cd output
     - curl -sS ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz | zcat | uniparc_xml_parser
