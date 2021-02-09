@@ -10,7 +10,7 @@ from tqdm import tqdm
 def csv_to_parquet(
     csv_file: Path, parquet_file: Path, *, delimiter: str, column_names: List[str]
 ) -> None:
-    read_options = csv.ReadOptions(column_names=column_names)
+    block_size = 1 << 24  # 16 MB
     parse_options = csv.ParseOptions(delimiter=delimiter)
     writer = None
     with csv.open_csv(
