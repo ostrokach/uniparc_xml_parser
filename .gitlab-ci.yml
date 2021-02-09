@@ -28,10 +28,10 @@ variables:
     # Conda
     - |
       cat <<EOF > ~/.condarc
-      channel_priority: true
+      channel_priority: strict
       channels:
-        - ostrokach-forge
         - conda-forge
+        - ostrokach-forge
         - defaults
       EOF
     - source /opt/conda/etc/profile.d/conda.sh
@@ -61,9 +61,7 @@ test:
     - build
   script:
     # Create conda environment for testing
-    - conda update -yq conda
-    - conda create -n test -q -c file://${CI_PROJECT_DIR}/conda-bld --strict-channel-priority
-      "python=3.9" ${CI_PROJECT_NAME} pytest || true
+    - conda create -n test -q -c file://${CI_PROJECT_DIR}/conda-bld "python=3.9" ${CI_PROJECT_NAME}
     - conda activate test
     # Run tests
     - uniparc_xml_parser --help
@@ -151,8 +149,8 @@ run-pipeline:
       cat <<EOF > ~/.condarc
       channel_priority: strict
       channels:
-        - ostrokach-forge
         - conda-forge
+        - ostrokach-forge
         - defaults
       EOF
     - curl -s -L https://github.com/conda-forge/miniforge/releases/download/4.9.2-5/Mambaforge-4.9.2-5-Linux-x86_64.sh > miniconda.sh
@@ -161,7 +159,7 @@ run-pipeline:
     - source /opt/conda/etc/profile.d/conda.sh
   script:
     - conda activate base
-    - mamba install 'python=3.9' pyarrow uniparc-xml-parser
+    - mamba install 'python=3.9' pyarrow uniparc_xml_parser
     - mkdir output
     - cd output
     - curl -sS ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz | zcat | uniparc_xml_parser
@@ -183,7 +181,6 @@ run-pipeline:
       echo ${property} ;
       bq load --replace --clustering_fields uniparc_id,xref_id ${property}.parquet ;
       done
-
   only:
     variables:
       - $UPDATE_TABLES
