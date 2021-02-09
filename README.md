@@ -21,11 +21,13 @@
 
 ## Introduction
 
-Process the UniParc XML file (`uniparc_all.xml.gz`) downloaded from the UniProt [website](http://www.uniprot.org/downloads) into CSV files that can be loaded into a relational database.
+`uniparc_xml_parser` is a small utility which can process the UniParc XML file (`uniparc_all.xml.gz`), available from the UniProt [website](http://www.uniprot.org/downloads), into a set of CSV files that can be loaded into a relational database.
+
+We also provide Parquet files, which can be queried using tools such as AWS Athena and Apache Presto, and have uploaded the generated data to Google BigQuery (see: [Output files](#output-files)).
 
 ## Usage
 
-Uncompressed XML data can be piped into `uniparc_xml_parser` in order to
+Uncompressed XML data can be piped into `uniparc_xml_parser` in order to parse the data into a set of CSV files on the fly:
 
 ```bash
 $ curl -sS ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz \
