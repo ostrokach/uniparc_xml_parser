@@ -1,5 +1,9 @@
 # UniParc XML parser
 
+[![docs](https://img.shields.io/badge/docs-v0.2.0-blue.svg)](https://ostrokach.gitlab.io/uniprac_xml_parser/v0.2.0/)
+[![conda](https://img.shields.io/conda/pn/ostrokach-forge/uniparc_xml_parser)](https://anaconda.org/ostrokach-forge/uniprac_xml_parser/)
+[![pipeline status](https://gitlab.com/ostrokach/uniparc_xml_parser/badges/v0.2.0/pipeline.svg)](https://gitlab.com/ostrokach/uniprac_xml_parser/commits/v0.2.0/)
+
 Process the UniParc XML file (`uniparc_all.xml.gz`) downloaded from the UniProt [website](http://www.uniprot.org/downloads) into CSV files that can be loaded into a relational database.
 
 ## Usage
