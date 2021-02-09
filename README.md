@@ -1,32 +1,27 @@
-# UniParc XML parser
+# UniParc XML parser <!-- omit in toc -->
 
 [![docs](https://img.shields.io/badge/docs-v0.2.0-blue.svg)](https://ostrokach.gitlab.io/uniparc_xml_parser/v0.2.0/)
 [![conda](https://img.shields.io/conda/pn/ostrokach-forge/uniparc_xml_parser)](https://anaconda.org/ostrokach-forge/uniparc_xml_parser/)
 [![pipeline status](https://gitlab.com/ostrokach/uniparc_xml_parser/badges/v0.2.0/pipeline.svg)](https://gitlab.com/ostrokach/uniparc_xml_parser/commits/v0.2.0/)
 
+- [Introduction](#introduction)
+- [Usage](#usage)
+- [Table schema](#table-schema)
+- [Installation](#installation)
+  - [Binaries](#binaries)
+  - [Cargo](#cargo)
+  - [Conda](#conda)
+- [Output files](#output-files)
+  - [Parquet](#parquet)
+  - [Google BigQuery](#google-bigquery)
+- [Benchmarks](#benchmarks)
+- [Roadmap](#roadmap)
+- [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
+- [FUQ (Frequently Used Queries)](#fuq-frequently-used-queries)
+
+## Introduction
+
 Process the UniParc XML file (`uniparc_all.xml.gz`) downloaded from the UniProt [website](http://www.uniprot.org/downloads) into CSV files that can be loaded into a relational database.
-
-## Installation
-
-### Binaries
-
-Linux binaries are available here: https://gitlab.com/ostrokach/uniparc_xml_parser/-/packages.
-
-### Cargo
-
-Use [`cargo`](https://crates.io/) to compile and install `uniparc_xml_parser` for your target platform:
-
-```bash
-cargo install uniparc_xml_parser
-```
-
-### Conda
-
-Use [`conda`](https://docs.conda.io/en/latest/miniconda.html) to install precompiled binaries:
-
-```bash
-conda install -c ostrokach-forge uniparc_xml_parser
-```
 
 ## Usage
 
@@ -57,13 +52,45 @@ $ ls
 -rw-r--r-- 1 user group 656K Feb  9 04:04 uniprot_kb_accession.parquet
 ```
 
-## Schema
+## Table schema
 
 The generated CSV files conform to the following schema:
 
 <div align="center">
 <img src="docs/schema/uml-diagram.svg" width="800px" />
 </div>
+
+## Installation
+
+### Binaries
+
+Linux binaries are available here: https://gitlab.com/ostrokach/uniparc_xml_parser/-/packages.
+
+### Cargo
+
+Use [`cargo`](https://crates.io/) to compile and install `uniparc_xml_parser` for your target platform:
+
+```bash
+cargo install uniparc_xml_parser
+```
+
+### Conda
+
+Use [`conda`](https://docs.conda.io/en/latest/miniconda.html) to install precompiled binaries:
+
+```bash
+conda install -c ostrokach-forge uniparc_xml_parser
+```
+
+## Output files
+
+### Parquet
+
+Parquet files containing the processed data are available at the following URL and are updated monthly: <http://uniparc.data.proteinsolver.org/>.
+
+### Google BigQuery
+
+The data can also be queried directly using Google BigQuery: <https://console.cloud.google.com/bigquery?project=ostrokach-data&p=ostrokach-data&page=dataset&d=uniparc>.
 
 ## Benchmarks
 
@@ -79,6 +106,10 @@ sys     0m1.892s
 
 The actual `uniparc_all.xml.gz` file has around 373,914,570 elements.
 
+## Roadmap
+
+- [ ] Keep everything in bytes all the way until output.
+
 ## FAQ (Frequently Asked Questions)
 
 **Why not split `uniparc_all.xml.gz` into multiple small files and process them in parallel?**
@@ -89,7 +120,3 @@ The actual `uniparc_all.xml.gz` file has around 373,914,570 elements.
 ## FUQ (Frequently Used Queries)
 
 TODO
-
-## Roadmap
-
-- [ ] Keep everything in bytes all the way until output.
