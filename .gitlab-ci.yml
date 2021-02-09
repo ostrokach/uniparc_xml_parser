@@ -106,8 +106,7 @@ deploy-cargo:
   extends:
     - .configure
   script:
-    - cargo login ${CARGO_TOKEN}
-    - cargo publish
+    - cargo publish --no-verify
   dependencies: []
   only:
     - tags
