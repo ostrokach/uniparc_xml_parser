@@ -24,9 +24,9 @@ domain.tsv     ncbi_gi.tsv    pdb_chain.tsv         proteome_id.tsv   uniprot_kb
 
 The generated CSV files conform to the following schema:
 
-<p align="center">
+<div align="center">
 <img src="docs/schema/uml-diagram.svg" width="800px" />
-</p>
+</div>
 
 ## Benchmarks
 
