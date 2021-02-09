@@ -15,6 +15,7 @@ Cargo.lock
 __pycache__
 
 # AS
+.vscode
 output
 tests/**/*.gz
 tests/**/*.tsv
