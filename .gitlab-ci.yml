@@ -109,6 +109,7 @@ deploy:
     - .configure
   script:
     # Upload to cargo
+    - cargo login ${CARGO_TOKEN}
     - cargo publish
     # Upload to generic package registry
     - |
