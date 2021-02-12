@@ -140,7 +140,7 @@ deploy-package:
 run-pipeline:
   image: ubuntu:20.04
   tags:
-    - k8s
+    - 3tb
   variables:
     KUBERNETES_CPU_REQUEST: "0.76"
     KUBERNETES_CPU_LIMIT: "4.0"
