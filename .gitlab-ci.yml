@@ -200,7 +200,7 @@ run-pipeline:
       python ../scripts/csv_to_parquet.py -q -f ${property}.tsv -c uniparc_id,xref_id,property,value ;
       done
     # Upload Parquet files to our server
-    - rsync -rv --info=progress2 -p --chmod=ug=rwX,o=rX *.parquet strokach@conda-envs.proteinsolver.org:/share/data/uniparc/
+    - rsync -rpv --chmod=ug=rwX,o=rX *.parquet strokach@conda-envs.proteinsolver.org:/share/data/uniparc/
     # Update BigQuery tables
     - bq load --source_format=PARQUET --replace --clustering_fields uniparc_id ostrokach-data:uniparc.uniparc uniparc.parquet
     - bq load --source_format=PARQUET --replace --clustering_fields database,uniparc_id ostrokach-data:uniparc.domain domain.parquet
