@@ -192,12 +192,12 @@ run-pipeline:
       | zcat
       | uniparc_xml_parser
     # Convert to Parquet files
-    - python ../scripts/csv_to_parquet.py -f uniparc.tsv -c uniparc_id,sequence,sequence_length,sequence_checksum
-    - python ../scripts/csv_to_parquet.py -f domain.tsv -c uniparc_id,database,database_id,interpro_name,interpro_id,domain_start,domain_end
-    - python ../scripts/csv_to_parquet.py -f xref.tsv -c uniparc_id,xref_id,db_type,db_id,version_i,active,version,created,last
+    - python ../scripts/csv_to_parquet.py -q -f uniparc.tsv -c uniparc_id,sequence,sequence_length,sequence_checksum
+    - python ../scripts/csv_to_parquet.py -q -f domain.tsv -c uniparc_id,database,database_id,interpro_name,interpro_id,domain_start,domain_end
+    - python ../scripts/csv_to_parquet.py -q -f xref.tsv -c uniparc_id,xref_id,db_type,db_id,version_i,active,version,created,last
     - for property in component gene_name ncbi_gi ncbi_taxonomy_id pdb_chain protein_name proteome_id uniprot_kb_accession ; do
       echo ${property} ;
-      python ../scripts/csv_to_parquet.py -f ${property}.tsv -c uniparc_id,xref_id,property,value ;
+      python ../scripts/csv_to_parquet.py -q -f ${property}.tsv -c uniparc_id,xref_id,property,value ;
       done
     # Upload Parquet files to our server
     - rsync -rv --info=progress2 -p --chmod=ug=rwX,o=rX *.parquet strokach@conda-envs.proteinsolver.org:/share/data/uniparc/
