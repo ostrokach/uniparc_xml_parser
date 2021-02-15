@@ -8,7 +8,12 @@ from tqdm import tqdm
 
 
 def csv_to_parquet(
-    csv_file: Path, parquet_file: Path, *, delimiter: str, column_names: List[str]
+    csv_file: Path,
+    parquet_file: Path,
+    *,
+    delimiter: str,
+    column_names: List[str],
+    quiet: bool = False,
 ) -> None:
     block_size = 1 << 24  # 16 MB
     read_options = csv.ReadOptions(column_names=column_names, block_size=block_size)
@@ -17,7 +22,7 @@ def csv_to_parquet(
     with csv.open_csv(
         csv_file, read_options=read_options, parse_options=parse_options
     ) as csv_reader:
-        for batch in tqdm(csv_reader):
+        for batch in tqdm(csv_reader, disable=quiet):
             if writer is None:
                 writer = pq.ParquetWriter(parquet_file, csv_reader.schema, compression="zstd")
             table = pa.Table.from_batches([batch])
@@ -34,7 +39,7 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--column-names", help="names of columns")
     parser.add_argument("-d", "--delimiter", default="\t", help="delimiter used by the CSV file")
     parser.add_argument("-o", "--output-file", default=None, help="output Parquer file")
-
+    parser.add_argument("-q", "--quiet", action="store_true", help="disable progressbar")
     args = parser.parse_args()
 
     csv_file = Path(args.input_file).resolve(strict=True)
@@ -46,4 +51,10 @@ if __name__ == "__main__":
     delimiter = args.delimiter
     column_names = args.column_names.split(",")
 
-    csv_to_parquet(csv_file, parquet_file, delimiter=delimiter, column_names=column_names)
+    csv_to_parquet(
+        csv_file,
+        parquet_file,
+        column_names=column_names,
+        delimiter=args.delimiter,
+        quiet=args.quiet,
+    )
