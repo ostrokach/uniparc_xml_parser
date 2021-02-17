@@ -170,6 +170,8 @@ run-pipeline:
     # TODO: Remove version pin when this issue is fixed: https://github.com/googleapis/google-api-python-client/issues/1006
     - apt-get install -y -qq -o=Dpkg::Use-Pty=0 google-cloud-sdk=296.0.1-0
     - gcloud auth activate-service-account --key-file="${GCLOUD_SERVICE_ACCOUNT_FILE}"
+    - gcloud --quiet config set project ostrokach-data
+    - gcloud --quiet config set compute/zone us-central1-b
     # Install conda
     - |
       cat <<EOF > ~/.condarc
