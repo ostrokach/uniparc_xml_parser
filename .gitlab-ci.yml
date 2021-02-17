@@ -167,7 +167,8 @@ run-pipeline:
     - apt-get install -y -qq -o=Dpkg::Use-Pty=0 apt-transport-https ca-certificates gnupg
     - curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
     - apt-get update -y -qq -o=Dpkg::Use-Pty=0
-    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 google-cloud-sdk
+    # TODO: Remove version pin when this issue is fixed: https://github.com/googleapis/google-api-python-client/issues/1006
+    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 google-cloud-sdk=296.0.1-0
     - gcloud auth activate-service-account --key-file="${GCLOUD_SERVICE_ACCOUNT_FILE}"
     # Install conda
     - |
