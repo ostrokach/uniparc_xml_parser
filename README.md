@@ -125,14 +125,10 @@ SELECT
   domain_start,
   domain_end,
   SUBSTR(sequence, domain_start, domain_end - domain_start + 1) AS domain_sequence
-FROM
-  `ostrokach-data.uniparc.uniparc` u
-JOIN
-  `ostrokach-data.uniparc.domain` d
-USING
-  (uniparc_id)
-WHERE
-  d.database = 'Gene3D';
+FROM `ostrokach-data.uniparc.uniparc` u
+JOIN `ostrokach-data.uniparc.domain` d
+USING (uniparc_id)
+WHERE d.database = 'Gene3D';
 ```
 
 BigQuery: <https://console.cloud.google.com/bigquery?sq=930310419365:a29f957964174c6dbfba7caac1dfeee9>.
@@ -159,14 +155,10 @@ FROM (
     domain_start,
     domain_end,
     SUBSTR(sequence, domain_start, domain_end - domain_start + 1) AS domain_sequence
-  FROM
-    `ostrokach-data.uniparc.uniparc` u
-  JOIN
-    `ostrokach-data.uniparc.domain` d
-  USING
-    (uniparc_id)
-  WHERE
-    d.database = 'Gene3D') t
+  FROM `ostrokach-data.uniparc.uniparc` u
+  JOIN `ostrokach-data.uniparc.domain` d
+  USING (uniparc_id)
+  WHERE d.database = 'Gene3D') t
 GROUP BY
   domain_sequence;
 ```
@@ -184,23 +176,14 @@ SELECT
   ensembl.db_id ensembl_id,
   uniprot.db_id uniprot_id
 FROM (
-  SELECT
-    uniparc_id,
-    db_id
-  FROM
-    `ostrokach-data.uniparc.xref`
-  WHERE
-    db_type = 'Ensembl') ensembl
+  SELECT uniparc_id, db_id
+  FROM `ostrokach-data.uniparc.xref`
+  WHERE db_type = 'Ensembl') ensembl
 JOIN (
-  SELECT
-    uniparc_id,
-    db_id
-  FROM
-    `ostrokach-data.uniparc.xref`
-  WHERE
-    db_type = 'UniProtKB/Swiss-Prot') uniprot
-USING
-  (uniparc_id);
+  SELECT uniparc_id, db_id
+  FROM `ostrokach-data.uniparc.xref`
+  WHERE db_type = 'UniProtKB/Swiss-Prot') uniprot
+USING (uniparc_id);
 ```
 
 BigQuery: <https://console.cloud.google.com/bigquery?sq=930310419365:488eace5d1524ba8bdc049935ba09251>.
