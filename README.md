@@ -16,10 +16,11 @@
   - [Parquet](#parquet)
   - [Google BigQuery](#google-bigquery)
 - [Benchmarks](#benchmarks)
-- [Example SQL query](#example-sql-query)
+- [Example SQL queries](#example-sql-queries)
   - [Find and extract all Gene3D domain sequences](#find-and-extract-all-gene3d-domain-sequences)
   - [Find and extract all _unique_ Gene3D domain sequences](#find-and-extract-all-unique-gene3d-domain-sequences)
   - [Map Ensembl identifiers to UniProt](#map-ensembl-identifiers-to-uniprot)
+  - [Find crystal structures of all GPCRs](#find-crystal-structures-of-all-gpcrs)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [Roadmap](#roadmap)
 
@@ -112,7 +113,7 @@ sys     0m1.892s
 
 The actual `uniparc_all.xml.gz` file has around 373,914,570 elements.
 
-## Example SQL query
+## Example SQL queries
 
 ### Find and extract all Gene3D domain sequences
 
@@ -189,6 +190,29 @@ USING (uniparc_id);
 BigQuery: <https://console.cloud.google.com/bigquery?sq=930310419365:488eace5d1524ba8bdc049935ba09251>.
 
 ![query-result](docs/images/ensembl-to-uniprot-result.png)
+
+### Find crystal structures of all GPCRs
+
+```sql
+SELECT
+  uniparc_id,
+  SUBSTR(p.value, 1, 4) pdb_id,
+  SUBSTR(p.value, 5) pdb_chain,
+  d.database_id pfam_id,
+  d.domain_start,
+  d.domain_end,
+  u.sequence pdb_chain_sequence
+FROM `ostrokach-data.uniparc.uniparc` u
+JOIN `ostrokach-data.uniparc.domain` d USING (uniparc_id)
+JOIN `ostrokach-data.uniparc.pdb_chain` p USING (uniparc_id)
+WHERE d.database = 'Pfam'
+AND d.database_id = 'PF00001';
+```
+
+BigQuery: <https://console.cloud.google.com/bigquery?sq=930310419365:8df5c3ad12144f418b0e1bc1285befc4>.
+
+![query-result](docs/images/gpcr-structures-result.png)
+
 
 ## FAQ (Frequently Asked Questions)
 
