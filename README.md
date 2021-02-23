@@ -16,9 +16,12 @@
   - [Parquet](#parquet)
   - [Google BigQuery](#google-bigquery)
 - [Benchmarks](#benchmarks)
-- [Roadmap](#roadmap)
+- [Example SQL query](#example-sql-query)
+  - [Find and extract all Gene3D domain sequences](#find-and-extract-all-gene3d-domain-sequences)
+  - [Find and extract all _unique_ Gene3D domain sequences](#find-and-extract-all-unique-gene3d-domain-sequences)
+  - [Map Ensembl identifiers to UniProt](#map-ensembl-identifiers-to-uniprot)
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
-- [FUQ (Frequently Used Queries)](#fuq-frequently-used-queries)
+- [Roadmap](#roadmap)
 
 ## Introduction
 
@@ -109,11 +112,100 @@ sys     0m1.892s
 
 The actual `uniparc_all.xml.gz` file has around 373,914,570 elements.
 
-## Roadmap
+## Example SQL query
 
-- [ ] Add support for writing Apache Parquet files directly.
-- [ ] Add support for writing output to object stores (such as S3 and GCS).
-- [ ] Avoid decoding the input into strings (keep everything as bytes throughout).
+### Find and extract all Gene3D domain sequences
+
+```sql
+SELECT
+  uniparc_id,
+  database_id AS gene3d_id,
+  interpro_name,
+  interpro_id,
+  domain_start,
+  domain_end,
+  SUBSTR(sequence, domain_start, domain_end - domain_start + 1) AS domain_sequence
+FROM
+  `ostrokach-data.uniparc.uniparc` u
+JOIN
+  `ostrokach-data.uniparc.domain` d
+USING
+  (uniparc_id)
+WHERE
+  d.database = 'Gene3D';
+```
+
+BigQuery: <https://console.cloud.google.com/bigquery?sq=930310419365:a29f957964174c6dbfba7caac1dfeee9>.
+
+![query-result](docs/images/gene3d-domains-result.png)
+
+### Find and extract all _unique_ Gene3D domain sequences
+
+```sql
+SELECT
+  ARRAY_AGG(uniparc_id ORDER BY uniparc_id, domain_start, domain_end) uniparc_id,
+  ARRAY_AGG(gene3d_id ORDER BY uniparc_id, domain_start, domain_end) gene3d_id,
+  ARRAY_AGG(interpro_name ORDER BY uniparc_id, domain_start, domain_end) interpro_name,
+  ARRAY_AGG(interpro_id ORDER BY uniparc_id, domain_start, domain_end) interpro_id,
+  ARRAY_AGG(domain_start ORDER BY uniparc_id, domain_start, domain_end) domain_start,
+  ARRAY_AGG(domain_end ORDER BY uniparc_id, domain_start, domain_end) domain_end,
+  domain_sequence
+FROM (
+  SELECT
+    uniparc_id,
+    database_id AS gene3d_id,
+    interpro_name,
+    interpro_id,
+    domain_start,
+    domain_end,
+    SUBSTR(sequence, domain_start, domain_end - domain_start + 1) AS domain_sequence
+  FROM
+    `ostrokach-data.uniparc.uniparc` u
+  JOIN
+    `ostrokach-data.uniparc.domain` d
+  USING
+    (uniparc_id)
+  WHERE
+    d.database = 'Gene3D') t
+GROUP BY
+  domain_sequence;
+```
+
+BigQuery: <https://console.cloud.google.com/bigquery?sq=930310419365:f8fa36964fed48c8b187ccadcf070223>.
+
+![query-result](docs/images/gene3d-unique-domains-result.png)
+
+### Map Ensembl identifiers to UniProt
+
+Find UniProt indentifiers for Ensembl transcript identifiers corresponding to the same sequence:
+
+```sql
+SELECT
+  ensembl.db_id ensembl_id,
+  uniprot.db_id uniprot_id
+FROM (
+  SELECT
+    uniparc_id,
+    db_id
+  FROM
+    `ostrokach-data.uniparc.xref`
+  WHERE
+    db_type = 'Ensembl') ensembl
+JOIN (
+  SELECT
+    uniparc_id,
+    db_id
+  FROM
+    `ostrokach-data.uniparc.xref`
+  WHERE
+    db_type = 'UniProtKB/Swiss-Prot') uniprot
+USING
+  (uniparc_id);
+```
+
+BigQuery: <https://console.cloud.google.com/bigquery?sq=930310419365:488eace5d1524ba8bdc049935ba09251>.
+
+![query-result](docs/images/ensembl-to-uniprot-result.png)
 
 ## FAQ (Frequently Asked Questions)
 
@@ -122,6 +214,8 @@ The actual `uniparc_all.xml.gz` file has around 373,914,570 elements.
 - Splitting the file requires reading the entire file. If we're reading the entire file anyway, why not parse it as we read it?
 - Having a single process which parses `uniparc_all.xml.gz` makes it easier to create an incremental unique index column (e.g. `xref.xref_id`).
 
-## FUQ (Frequently Used Queries)
+## Roadmap
 
-TODO
+- [ ] Add support for writing Apache Parquet files directly.
+- [ ] Add support for writing output to object stores (such as S3 and GCS).
+- [ ] Avoid decoding the input into strings (keep everything as bytes throughout).
