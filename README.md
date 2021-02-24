@@ -64,7 +64,7 @@ $ ls
 The generated CSV files conform to the following schema:
 
 <div align="center">
-<img src="docs/schema/uml-diagram.svg" width="800px" />
+<img src="docs/images/uml-diagram.svg" width="800px" />
 </div>
 
 ## Installation
