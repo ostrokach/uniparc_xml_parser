@@ -1,8 +1,9 @@
 # UniParc XML parser <!-- omit in toc -->
 
-[![docs](https://img.shields.io/badge/docs-v0.2.1-blue.svg)](https://ostrokach.gitlab.io/uniparc_xml_parser/v0.2.1/)
-[![crates.io](https://img.shields.io/crates/v/uniparc_xml_parser)](https://crates.io/crates/uniparc_xml_parser/)
-[![conda](https://img.shields.io/conda/vn/ostrokach-forge/uniparc_xml_parser)](https://anaconda.org/ostrokach-forge/uniparc_xml_parser/)
+[![gitlab](https://img.shields.io/badge/GitLab-main-orange?logo=gitlab)](https://gitlab.com/ostrokach/uniparc_xml_parser)
+[![docs](https://img.shields.io/badge/docs-v0.2.1-blue.svg?logo=gitbook)](https://ostrokach.gitlab.io/uniparc_xml_parser/v0.2.1/)
+[![crates.io](https://img.shields.io/crates/d/uniparc_xml_parser?logo=rust)](https://crates.io/crates/uniparc_xml_parser/)
+[![conda](https://img.shields.io/conda/dn/ostrokach-forge/uniparc_xml_parser?logo=conda-forge)](https://anaconda.org/ostrokach-forge/uniparc_xml_parser/)
 [![pipeline status](https://gitlab.com/ostrokach/uniparc_xml_parser/badges/v0.2.1/pipeline.svg)](https://gitlab.com/ostrokach/uniparc_xml_parser/commits/v0.2.1/)
 
 - [Introduction](#introduction)
