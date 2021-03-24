@@ -199,7 +199,7 @@ run-pipeline:
     - conda activate base
     - mamba install 'python=3.9' pyarrow uniparc_xml_parser
     # Download input data
-    - curl -sS -o uniparc_all.xml.gz ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz
+    - curl -o uniparc_all.xml.gz ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz
     # Process data
     - mkdir output && cd output
     - zcat ../uniparc_all.xml.gz | uniparc_xml_parser
