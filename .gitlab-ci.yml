@@ -189,12 +189,10 @@ run-pipeline:
   script:
     - conda activate base
     - mamba install 'python=3.9' pyarrow uniparc_xml_parser
+    - curl -sS -o uniparc_all.xml.gz ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz
     - mkdir output
     - cd output
-    - >
-      curl -sS ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz
-      | zcat
-      | uniparc_xml_parser
+    - zcat ../uniparc_all.xml.gz | uniparc_xml_parser
     # Convert to Parquet files
     - python ../scripts/csv_to_parquet.py -q -f uniparc.tsv -c uniparc_id,sequence,sequence_length,sequence_checksum
     - python ../scripts/csv_to_parquet.py -q -f domain.tsv -c uniparc_id,database,database_id,interpro_name,interpro_id,domain_start,domain_end
