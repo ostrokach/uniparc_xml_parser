@@ -137,6 +137,46 @@ deploy-package:
 
 # === Run pipeline ===
 
+.install-ssh-client:
+  script: &install-ssh-client
+    - "which ssh-agent || ( apt-get install -y -qq -o=Dpkg::Use-Pty=0 openssh-client -y )"
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    # Test that ssh client works
+    - ssh strokach@conda-envs.proteinsolver.org "echo hello"
+
+.install-gcloud:
+  script: &install-gcloud
+    - >
+      echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main"
+      | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 apt-transport-https ca-certificates gnupg
+    - curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+    - apt-get update -y -qq -o=Dpkg::Use-Pty=0
+    # TODO: Remove version pin when this issue is fixed: https://github.com/googleapis/google-api-python-client/issues/1006
+    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 google-cloud-sdk=296.0.1-0
+    - gcloud auth activate-service-account --key-file="${GCLOUD_SERVICE_ACCOUNT_FILE}"
+    - gcloud --quiet config set project ostrokach-data
+    - gcloud --quiet config set compute/zone us-central1-b
+
+.install-conda:
+  script: &install-conda
+    - |
+      cat <<EOF > ~/.condarc
+      channel_priority: strict
+      channels:
+        - conda-forge
+        - ostrokach-forge
+        - defaults
+      EOF
+    - curl -s -L https://github.com/conda-forge/miniforge/releases/download/4.9.2-5/Mambaforge-4.9.2-5-Linux-x86_64.sh > miniconda.sh
+    - openssl dgst -sha256 miniconda.sh | grep 7f0ad0c2f367751f7878d25a7bc1b4aa48b8dcea864daf9bc09acb595102368b
+    - sh miniconda.sh -b -p /opt/conda
+    - source /opt/conda/etc/profile.d/conda.sh
+
 run-pipeline:
   image: ubuntu:20.04
   tags:
@@ -152,46 +192,16 @@ run-pipeline:
     # Install global dependencies
     - apt-get update -y -qq -o=Dpkg::Use-Pty=0
     - apt-get install -y -qq -o=Dpkg::Use-Pty=0 curl gettext-base gzip openssl rsync
-    # Install ssh client
-    - "which ssh-agent || ( apt-get install -y -qq -o=Dpkg::Use-Pty=0 openssh-client -y )"
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo "$KNOWN_HOSTS" >> ~/.ssh/known_hosts
-    # Test that ssh client works
-    - ssh strokach@conda-envs.proteinsolver.org "echo hello"
-    # Install gcloud
-    - >
-      echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main"
-      | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 apt-transport-https ca-certificates gnupg
-    - curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-    - apt-get update -y -qq -o=Dpkg::Use-Pty=0
-    # TODO: Remove version pin when this issue is fixed: https://github.com/googleapis/google-api-python-client/issues/1006
-    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 google-cloud-sdk=296.0.1-0
-    - gcloud auth activate-service-account --key-file="${GCLOUD_SERVICE_ACCOUNT_FILE}"
-    - gcloud --quiet config set project ostrokach-data
-    - gcloud --quiet config set compute/zone us-central1-b
-    # Install conda
-    - |
-      cat <<EOF > ~/.condarc
-      channel_priority: strict
-      channels:
-        - conda-forge
-        - ostrokach-forge
-        - defaults
-      EOF
-    - curl -s -L https://github.com/conda-forge/miniforge/releases/download/4.9.2-5/Mambaforge-4.9.2-5-Linux-x86_64.sh > miniconda.sh
-    - openssl dgst -sha256 miniconda.sh | grep 7f0ad0c2f367751f7878d25a7bc1b4aa48b8dcea864daf9bc09acb595102368b
-    - sh miniconda.sh -b -p /opt/conda
-    - source /opt/conda/etc/profile.d/conda.sh
+    - *install-ssh-client
+    - *install-gcloud
+    - *install-conda
   script:
     - conda activate base
     - mamba install 'python=3.9' pyarrow uniparc_xml_parser
+    # Download input data
     - curl -sS -o uniparc_all.xml.gz ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz
-    - mkdir output
-    - cd output
+    # Process data
+    - mkdir output && cd output
     - zcat ../uniparc_all.xml.gz | uniparc_xml_parser
     # Convert to Parquet files
     - python ../scripts/csv_to_parquet.py -q -f uniparc.tsv -c uniparc_id,sequence,sequence_length,sequence_checksum
