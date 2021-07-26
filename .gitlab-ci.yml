@@ -199,7 +199,10 @@ run-pipeline:
     - conda activate base
     - mamba install 'python=3.9' pyarrow uniparc_xml_parser
     # Download input data
-    - curl -O -C - --retry 999 --retry-max-time 0 ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz
+    - (while true ; do sleep 120; ls -lSh uniparc_all.xml.gz ; done) &
+    - monitor_pid=$!
+    - curl -O -C - --retry 999 --retry-max-time 0 --no-progress-meter ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/uniparc/uniparc_all.xml.gz
+    - kill $monitor_pid
     # Process data
     - mkdir output && cd output
     - zcat ../uniparc_all.xml.gz | uniparc_xml_parser
@@ -214,13 +217,13 @@ run-pipeline:
     # Upload Parquet files to our server
     - rsync -rpv --chmod=ug=rwX,o=rX *.parquet strokach@conda-envs.proteinsolver.org:/share/data/uniparc/
     # Update BigQuery tables
-    - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields uniparc_id ostrokach-data:uniparc.uniparc uniparc.parquet
-    - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields database,uniparc_id ostrokach-data:uniparc.domain domain.parquet
-    - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields db_type,uniparc_id,xref_id ostrokach-data:uniparc.xref xref.parquet
-    - for property in component gene_name ncbi_gi ncbi_taxonomy_id pdb_chain protein_name proteome_id uniprot_kb_accession ; do
-      echo ${property} ;
-      bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields uniparc_id,xref_id ostrokach-data:uniparc.${property} ${property}.parquet ;
-      done
+    # - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields uniparc_id ostrokach-data:uniparc.uniparc uniparc.parquet
+    # - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields database,uniparc_id ostrokach-data:uniparc.domain domain.parquet
+    # - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields db_type,uniparc_id,xref_id ostrokach-data:uniparc.xref xref.parquet
+    # - for property in component gene_name ncbi_gi ncbi_taxonomy_id pdb_chain protein_name proteome_id uniprot_kb_accession ; do
+    #   echo ${property} ;
+    #   bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields uniparc_id,xref_id ostrokach-data:uniparc.${property} ${property}.parquet ;
+    #   done
   timeout: 3 days
   only:
     variables:
