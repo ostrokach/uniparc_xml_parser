@@ -269,3 +269,6 @@ destroy-bigquery:
     - create-bigquery
   when: delayed
   start_in: 2 days
+  only:
+    variables:
+      - $CREATE_BIGQUERY
