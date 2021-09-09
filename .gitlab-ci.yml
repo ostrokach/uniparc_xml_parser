@@ -244,7 +244,14 @@ create-bigquery:
     - *install-ssh-client
     - *install-gcloud
   script:
-    - cd /share/data/uniparc
+    - if [[ -d /share/data/uniparc ]] ;
+      then 
+      cd /share/data/uniparc ;
+      else
+      mkdir output ;
+      rsync -rpv strokach@conda-envs.proteinsolver.org:/share/data/uniparc/ output/ ;
+      cd output ;
+      fi
     - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields uniparc_id ostrokach-data:uniparc.uniparc uniparc.parquet
     - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields database,uniparc_id ostrokach-data:uniparc.domain domain.parquet
     - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields db_type,uniparc_id,xref_id ostrokach-data:uniparc.xref xref.parquet
