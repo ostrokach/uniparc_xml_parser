@@ -231,13 +231,13 @@ create-bigquery:
   before_script:
     # Install global dependencies
     - apt-get update -y -qq -o=Dpkg::Use-Pty=0
-    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 curl gettext-base gzip openssl rsync
+    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 sshfs
     - *install-ssh-client
     - *install-gcloud
   script:
-    # Download parquet files
-    - rsync -rpv strokach@conda-envs.proteinsolver.org:/share/data/uniparc/ ./
-    # Update BigQuery tables
+    - mkdir output
+    - sshfs strokach@conda-envs.proteinsolver.org:/share/data/uniparc output
+    - cd output
     - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields uniparc_id ostrokach-data:uniparc.uniparc uniparc.parquet
     - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields database,uniparc_id ostrokach-data:uniparc.domain domain.parquet
     - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields db_type,uniparc_id,xref_id ostrokach-data:uniparc.xref xref.parquet
@@ -245,6 +245,7 @@ create-bigquery:
       echo ${property} ;
       bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields uniparc_id,xref_id ostrokach-data:uniparc.${property} ${property}.parquet ;
       done
+  timeout: 6 hours
   only:
     variables:
       - $CREATE_BIGQUERY
