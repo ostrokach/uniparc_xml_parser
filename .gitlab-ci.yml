@@ -2,6 +2,8 @@ default:
   image: condaforge/linux-anvil-cos7-x86_64:latest
 
 stages:
+  - start
+  - stop
   - build
   - test
   - deploy
@@ -177,7 +179,7 @@ deploy-package:
     - sh miniconda.sh -b -p /opt/conda
     - source /opt/conda/etc/profile.d/conda.sh
 
-run-pipeline:
+generate-parquet-files:
   image: ubuntu:20.04
   tags:
     - 3tb
@@ -193,7 +195,6 @@ run-pipeline:
     - apt-get update -y -qq -o=Dpkg::Use-Pty=0
     - apt-get install -y -qq -o=Dpkg::Use-Pty=0 curl gettext-base gzip openssl rsync
     - *install-ssh-client
-    - *install-gcloud
     - *install-conda
   script:
     - conda activate base
@@ -216,15 +217,55 @@ run-pipeline:
       done
     # Upload Parquet files to our server
     - rsync -rpv --chmod=ug=rwX,o=rX *.parquet strokach@conda-envs.proteinsolver.org:/share/data/uniparc/
-    # Update BigQuery tables
-    # - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields uniparc_id ostrokach-data:uniparc.uniparc uniparc.parquet
-    # - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields database,uniparc_id ostrokach-data:uniparc.domain domain.parquet
-    # - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields db_type,uniparc_id,xref_id ostrokach-data:uniparc.xref xref.parquet
-    # - for property in component gene_name ncbi_gi ncbi_taxonomy_id pdb_chain protein_name proteome_id uniprot_kb_accession ; do
-    #   echo ${property} ;
-    #   bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields uniparc_id,xref_id ostrokach-data:uniparc.${property} ${property}.parquet ;
-    #   done
   timeout: 3 days
   only:
     variables:
       - $UPDATE_TABLES
+
+create-bigquery:
+  image: ubuntu:20.04
+  stage: start
+  tags:
+    - 3tb
+  before_script:
+    # Install global dependencies
+    - apt-get update -y -qq -o=Dpkg::Use-Pty=0
+    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 curl gettext-base gzip openssl rsync
+    - *install-ssh-client
+    - *install-gcloud
+  script:
+    # Download parquet files
+    - rsync -rpv strokach@conda-envs.proteinsolver.org:/share/data/uniparc/ ./
+    # Update BigQuery tables
+    - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields uniparc_id ostrokach-data:uniparc.uniparc uniparc.parquet
+    - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields database,uniparc_id ostrokach-data:uniparc.domain domain.parquet
+    - bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields db_type,uniparc_id,xref_id ostrokach-data:uniparc.xref xref.parquet
+    - for property in component gene_name ncbi_gi ncbi_taxonomy_id pdb_chain protein_name proteome_id uniprot_kb_accession ; do
+      echo ${property} ;
+      bq load --project_id=ostrokach-data --source_format=PARQUET --replace --clustering_fields uniparc_id,xref_id ostrokach-data:uniparc.${property} ${property}.parquet ;
+      done
+  only:
+    variables:
+      - $CREATE_BIGQUERY
+
+destroy-bigquery:
+  image: ubuntu:20.04
+  stage: stop
+  before_script:
+    # Install global dependencies
+    - apt-get update -y -qq -o=Dpkg::Use-Pty=0
+    - apt-get install -y -qq -o=Dpkg::Use-Pty=0 curl gettext-base gzip openssl rsync
+    - *install-gcloud
+  script:
+    # Delete BigQuery tables
+    - bq rm -f -t ostrokach-data:uniparc.uniparc
+    - bq rm -f -t ostrokach-data:uniparc.domain
+    - bq rm -f -t ostrokach-data:uniparc.xref
+    - for property in component gene_name ncbi_gi ncbi_taxonomy_id pdb_chain protein_name proteome_id uniprot_kb_accession ; do
+      echo ${property} ;
+      bq rm -f -t ostrokach-data:uniparc.${property} ;
+      done
+  dependencies:
+    - create-bigquery
+  when: delayed
+  start_in: 2 days
