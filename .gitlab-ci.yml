@@ -19,6 +19,7 @@ variables:
   except:
     variables:
       - $UPDATE_TABLES
+      - $CREATE_BIGQUERY
 
 .configure:
   extends:
