@@ -227,7 +227,7 @@ generate-parquet-files:
       then 
       rsync -rpv --chmod=ug=rwX,o=rX *.parquet strokach@conda-envs.proteinsolver.org:/share/data/uniparc/ ;
       fi
-  timeout: 3 dayss
+  timeout: 3 days
   only:
     variables:
       - $UPDATE_TABLES
