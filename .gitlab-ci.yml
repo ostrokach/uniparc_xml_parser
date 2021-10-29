@@ -149,7 +149,7 @@ deploy-package:
     - chmod 700 ~/.ssh
     - echo "$KNOWN_HOSTS" >> ~/.ssh/known_hosts
     # Test that ssh client works
-    - ssh strokach@conda-envs.proteinsolver.org "echo hello"
+    # - ssh strokach@conda-envs.proteinsolver.org "echo hello"
 
 .install-gcloud:
   script: &install-gcloud
